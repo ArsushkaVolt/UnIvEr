@@ -1,0 +1,7 @@
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\Pract\Pract\bin\Debug\Pract.exe.config
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\Pract\Pract\bin\Debug\Pract.exe
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\Pract\Pract\bin\Debug\Pract.pdb
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\Pract\Pract\obj\Debug\Pract.csproj.AssemblyReference.cache
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\Pract\Pract\obj\Debug\Pract.csproj.CoreCompileInputs.cache
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\Pract\Pract\obj\Debug\Pract.exe
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\Pract\Pract\obj\Debug\Pract.pdb
