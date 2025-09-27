@@ -182,6 +182,7 @@ main {
 .product-info ul {
     list-style: none;
     margin-bottom: 1rem;
+    list-style-type: disc;
 }
 
 .product-info ul li {
@@ -229,6 +230,10 @@ main {
     font-size: 1.1rem;
 }
 
+.cart {
+    padding: 3rem, 0;
+    
+}
 /* Футер */
 footer {
     background-color: #2c3e50;
