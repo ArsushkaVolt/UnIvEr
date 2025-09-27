@@ -5,3 +5,14 @@ C:\Users\BaitPro\Documents\GitHub\UnIvEr\Pract\Pract\obj\Debug\Pract.csproj.Asse
 C:\Users\BaitPro\Documents\GitHub\UnIvEr\Pract\Pract\obj\Debug\Pract.csproj.CoreCompileInputs.cache
 C:\Users\BaitPro\Documents\GitHub\UnIvEr\Pract\Pract\obj\Debug\Pract.exe
 C:\Users\BaitPro\Documents\GitHub\UnIvEr\Pract\Pract\obj\Debug\Pract.pdb
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract\bin\Debug\Pract.exe.config
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract\bin\Debug\Pract.exe
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract\bin\Debug\Pract.pdb
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract\bin\Debug\Microsoft.Bcl.HashCode.dll
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract\bin\Debug\Microsoft.Bcl.HashCode.xml
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract\obj\Debug\Pract.csproj.AssemblyReference.cache
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract\obj\Debug\Pract.exe.config
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract\obj\Debug\Pract.csproj.CoreCompileInputs.cache
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract\obj\Debug\Pract.csproj.Up2Date
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract\obj\Debug\Pract.exe
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract\obj\Debug\Pract.pdb
