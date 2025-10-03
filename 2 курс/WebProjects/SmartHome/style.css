@@ -109,7 +109,7 @@ main {
     overflow: hidden;
     text-align: center;
     padding: 1rem;
-    transition: transform 0.3s;
+    transition: transform 0.5s;
 }
 
 .product-card:hover {
@@ -146,6 +146,68 @@ main {
 .product-link:hover {
     background-color: #2980b9;
 }
+
+/* Секция продуктов */
+.products {
+    padding: 3rem 0;
+}
+
+.products h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.product-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    text-align: center;
+    padding: 1rem;
+    transition: transform 0.3s;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.product-card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+.product-card h3 {
+    margin: 1rem 0 0.5rem;
+    font-size: 1.2rem;
+}
+
+.product-card p {
+    color: #888;
+    margin-bottom: 1rem;
+}
+
+.product-card button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.product-card button:hover {
+    background-color: #2980b9;
+}
+
 
 /* Детали товара */
 .product-details {
@@ -230,10 +292,58 @@ main {
     font-size: 1.1rem;
 }
 
+/* Корзина */
 .cart {
-    padding: 3rem, 0;
-    
+    padding: 3rem 0;
 }
+
+.cart h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+
+.cart-items {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.cart-total {
+    text-align: right;
+    padding: 1rem;
+    font-weight: bold;
+}
+
+.checkout-btn {
+    display: block;
+    margin: 1rem auto;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.checkout-btn:hover {
+    background-color: #219653;
+}
+    
+
 /* Футер */
 footer {
     background-color: #2c3e50;
