@@ -164,7 +164,7 @@ namespace Electronics
         // Переопределение GetHashCode для корректной работы Equals
         public override int GetHashCode()
         {
-            // Используем классический подход для генерации хэш-кода, совместимый с .NET Framework
+            
             unchecked // Предотвращает исключение при переполнении
             {
                 int hash = 17;
