@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Pract
+namespace Electronics
 {
     // Интерфейс для задания 3, определяет методы для прослушивания звука и получения имени класса
     public interface IListenable
@@ -127,7 +124,7 @@ namespace Pract
         // Статический метод для прослушивания звука работы телевизора
         public static void ListenOperation()
         {
-            Console.WriteLine("Телевизор издает звук работы: *шум вентилятора*");
+            Console.WriteLine("Экран телевизора загорелся");
         }
 
         // Перегрузка метода ToString для вывода информации о телевизоре
@@ -167,7 +164,14 @@ namespace Pract
         // Переопределение GetHashCode для корректной работы Equals
         public override int GetHashCode()
         {
-            return HashCode.Combine(Price, Diagonal);
+            // Используем классический подход для генерации хэш-кода, совместимый с .NET Framework
+            unchecked // Предотвращает исключение при переполнении
+            {
+                int hash = 17;
+                hash = hash * 23 + Price.GetHashCode();
+                hash = hash * 23 + Diagonal.GetHashCode();
+                return hash;
+            }
         }
 
         // Переопределение метода GetClassName с вызовом базового
@@ -398,10 +402,10 @@ namespace Pract
         static void TestHierarchy()
         {
             // Создание объектов каждого класса
-            Television tv = new Television("Samsung", 55.0, 1000, "Korea");
-            Phone phone = new Phone("iPhone", "USA");
-            Headphones headphones = new Headphones(true, "Japan");
-            Gramophone gramophone = new Gramophone(78, "Germany");
+            Television tv = new Television("Samsung", 55.0, 1000, "Корея");
+            Phone phone = new Phone("iPhone", "Америка");
+            Headphones headphones = new Headphones(true, "Япония");
+            Gramophone gramophone = new Gramophone(78, "Германия");
 
             Device[] devices = { tv, phone, headphones, gramophone };
 
@@ -477,15 +481,8 @@ namespace Pract
         // Метод для тестирования интерфейса и списка (задание 3)
         static void TestInterface()
         {
-            // Создание списка объектов, реализующих интерфейс IListenable
-            List<IListenable> listenables = new List<IListenable>
-            {
-                new Television("Sony", 42.0, 800, "Japan"),
-                new Phone("Nokia", "Finland"),
-                new Headphones(false, "China"),
-                new Gramophone(33, "USA"),
-                new Dog("Rex")
-            };
+            // Создание пустого списка объектов, реализующих интерфейс IListenable
+            List<IListenable> listenables = new List<IListenable>();
 
             while (true)
             {
@@ -560,6 +557,11 @@ namespace Pract
                         break;
                     case "2":
                         // Вывод свойств объекта по индексу
+                        if (listenables.Count == 0)
+                        {
+                            Console.WriteLine("Список пуст. Добавьте объекты с помощью пункта 1.");
+                            break;
+                        }
                         Console.Write("Введите индекс объекта (0-{0}): ", listenables.Count - 1);
                         int index = int.Parse(Console.ReadLine());
                         if (index >= 0 && index < listenables.Count)
@@ -591,6 +593,11 @@ namespace Pract
                         break;
                     case "3":
                         // Выполнение метода Listen для объекта по индексу
+                        if (listenables.Count == 0)
+                        {
+                            Console.WriteLine("Список пуст. Добавьте объекты с помощью пункта 1.");
+                            break;
+                        }
                         Console.Write("Введите индекс объекта (0-{0}): ", listenables.Count - 1);
                         index = int.Parse(Console.ReadLine());
                         if (index >= 0 && index < listenables.Count)
@@ -604,6 +611,11 @@ namespace Pract
                         break;
                     case "4":
                         // Вывод всех объектов с их именами классов
+                        if (listenables.Count == 0)
+                        {
+                            Console.WriteLine("Список пуст. Добавьте объекты с помощью пункта 1.");
+                            break;
+                        }
                         for (int i = 0; i < listenables.Count; i++)
                         {
                             Console.WriteLine($"[{i}] {listenables[i].GetClassName()}");
@@ -611,6 +623,11 @@ namespace Pract
                         break;
                     case "5":
                         // Выполнение функции с объектом по индексу
+                        if (listenables.Count == 0)
+                        {
+                            Console.WriteLine("Список пуст. Добавьте объекты с помощью пункта 1.");
+                            break;
+                        }
                         Console.Write("Введите индекс объекта (0-{0}): ", listenables.Count - 1);
                         index = int.Parse(Console.ReadLine());
                         if (index >= 0 && index < listenables.Count)
@@ -637,6 +654,3 @@ namespace Pract
         }
     }
 }
-
-
-
