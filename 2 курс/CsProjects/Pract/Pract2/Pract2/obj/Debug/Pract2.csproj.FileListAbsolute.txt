@@ -1,0 +1,8 @@
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract2\Pract2\bin\Debug\Pract2.exe.config
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract2\Pract2\bin\Debug\Pract2.exe
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract2\Pract2\bin\Debug\Pract2.pdb
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract2\Pract2\obj\Debug\Pract2.csproj.AssemblyReference.cache
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract2\Pract2\obj\Debug\Pract2.csproj.CoreCompileInputs.cache
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract2\Pract2\obj\Debug\Pract2.exe
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract2\Pract2\obj\Debug\Pract2.pdb
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\Pract\Pract2\Pract2\obj\Debug\Pract2.exe.config
