@@ -18,9 +18,17 @@ namespace Pract2
     {
         static void Main(string[] args)
         {
-            Console.Write("Введите имя файла: ");  // Запрашиваем у пользователя имя файла для работы (например, "data.txt")
-            string fileName = Console.ReadLine().Trim();  // Считываем введенное имя файла и убираем лишние пробелы
-
+            string fileName;
+            while (true)
+            {
+                Console.Write("Введите имя файла: ");
+                fileName = Console.ReadLine().Trim();
+                if (!string.IsNullOrWhiteSpace(fileName))  // Проверяем, что имя файла не пустое
+                {
+                    break;  // Если имя файла валидное, выходим из цикла
+                }
+                Console.WriteLine("Имя файла не может быть пустым. Пожалуйста, введите снова.");
+            }
             LinkedList<Technique> techniques = new LinkedList<Technique>();  // Инициализируем двусвязный список для хранения объектов типа Technique
 
             if (File.Exists(fileName))  // Проверяем, существует ли файл с указанным именем
