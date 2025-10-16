@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartHome - Главная</title>
     <link rel="stylesheet" href="style.css">
+    <script src="/js/carousel.js" defer></script>
     <link rel="icon" href="/image/logo smarthome 2.png" />
 </head>
+
 <body>
     <header>
         <nav>
-            
-            <a href="index.html" class="logo-link"> 
+
+            <a href="index.html" class="logo-link">
                 <div class="logo-container">
                     <img src="/image/logo smarthome 2.png" alt="Логотип SmartHome" class="logo-img">
                     <span class="logo-text">SmartHome</span>
@@ -33,8 +36,17 @@
             <p>Современные решения для комфорта и безопасности вашего дома</p>
         </section>
 
+
+
+        <section class="about">
+            <h2>О нас</h2>
+            <p>Мы – команда "SmartHome", создающая инновационные решения для автоматизации вашего дома. Наша миссия – сделать вашу жизнь комфортнее и безопаснее с помощью передовых технологий.</p>
+        </section>
+
+
+
         <section class="products">
-            <h2>Наши товары</h2>   
+            <h2>Популярные товары</h2>
             <div class="product-grid">
                 <a href="product-lamp.html" class="product-card-link">
 
@@ -68,14 +80,63 @@
                         <p>Цена: 1001 ₽</p>
                     </div>
                 </a>
-
+                
 
             </div>
+            <a href="products.html" class="all-products-link">Все товары</a>
         </section>
+        <section class="reviews">
+            <h2>Отзывы наших клиентов</h2>
+            <div class="review-carousel">
+                <div class="carousel-container">
+                    <div class="carousel-track">
+                        <div class="carousel-item">
+                            <p>"Умная лампа изменила моё представление об освещении! Управление через приложение – это так удобно!"</p>
+                            <h4>Анастасия, Москва</h4>
+                        </div>
+                        <div class="carousel-item">
+                            <p>"Термостат помогает экономить на отоплении. Настройка заняла 5 минут, теперь всё под контролем."</p>
+                            <h4>Вадим, Санкт-Петербург</h4>
+                        </div>
+                        <div class="carousel-item">
+                            <p>"Розетка – находка! Включаю чайник с работы, чтобы он ждал меня горячим."</p>
+                            <h4>Елена, Казань</h4>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-prev">❮</button>
+                <button class="carousel-next">❯</button>
+            </div>
+        </section>
+            
+        
+
+        <section class="features">
+            <h2>Почему выбирают нас</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <img src="/image/galochka.png" alt="Качество">
+                    <h3>Качество</h3>
+                    <p>Надёжные устройства с долгим сроком службы.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="/image/logo 2.png" alt="Инновации">
+                    <h3>Инновации</h3>
+                    <p>Передовые технологии для вашего дома.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="image/support.png" alt="Поддержка">
+                    <h3>Поддержка</h3>
+                    <p>Круглосуточная помощь и консультации.</p>
+                </div>
+            </div>
+        </section>
+    </main>
     </main>
 
     <footer>
         <p>&copy; 2025 SmartHome. Все права защищены.</p>
     </footer>
 </body>
+
 </html>
