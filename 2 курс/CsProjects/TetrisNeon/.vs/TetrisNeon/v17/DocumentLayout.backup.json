@@ -1,0 +1,44 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\BaitPro\\Documents\\GitHub\\UnIvEr\\2 \u043A\u0443\u0440\u0441\\CsProjects\\TetrisNeon\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{44E81DF3-491C-437A-BCE9-58439999EE5C}|TetrisNeon\\TetrisNeon.csproj|c:\\users\\baitpro\\documents\\github\\univer\\2 \u043A\u0443\u0440\u0441\\csprojects\\tetrisneon\\tetrisneon\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{44E81DF3-491C-437A-BCE9-58439999EE5C}|TetrisNeon\\TetrisNeon.csproj|solutionrelative:tetrisneon\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Form1.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\BaitPro\\Documents\\GitHub\\UnIvEr\\2 \u043A\u0443\u0440\u0441\\CsProjects\\TetrisNeon\\TetrisNeon\\Form1.cs",
+              "RelativeDocumentMoniker": "TetrisNeon\\Form1.cs",
+              "ToolTip": "C:\\Users\\BaitPro\\Documents\\GitHub\\UnIvEr\\2 \u043A\u0443\u0440\u0441\\CsProjects\\TetrisNeon\\TetrisNeon\\Form1.cs [Design]",
+              "RelativeToolTip": "TetrisNeon\\Form1.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-16T15:00:11.49Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

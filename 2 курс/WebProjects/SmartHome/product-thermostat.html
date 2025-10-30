@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartHome - Умный термостат</title>
     <link rel="stylesheet" href="style.css">
+    <script src="/js/cart.js" defer></script>
     <link rel="icon" href="/image/logo smarthome 2.png" />
 </head>
 
@@ -23,8 +24,10 @@
             <ul>
                 <li><a href="index.html">Главная</a></li>
                 <li><a href="products.html">Товары</a></li>
-                <li><a href="cart.html">Корзина</a></li>
-                <li><a href="contact.html">Контакты</a></li>
+                 <li>
+                    <a href="cart.html">Корзина</a>
+                    <span class="cart-badge">0</span>
+                </li>
                 <li><a href="login.html">Вход</a></li>
             </ul>
         </nav>
@@ -55,13 +58,23 @@
                         <li>Питание: 24 В</li>
                         <li>Совместимость: Alexa, Google Home, HomeKit</li>
                     </ul>
-                    <button class="add-to-cart">Добавить в корзину</button>
+                    <button class="add-to-cart" data-name="Умная термостат" data-price="2990">Добавить в корзину</button>
                 </div>
             </div>
         </section>
     </main>
 
     <footer>
+        <div class="contact">
+            <h2>Контакты</h2>
+            <p class="slogan">Ваш умный дом – наша забота!</p>
+            <ul>
+                <li><strong>Телефон:</strong> +7 (495) 123-45-67</li>
+                <li><strong>Email:</strong> <a href="mailto:info@smarthome.ru">info@smarthome.ru</a></li>
+                <li><strong>Адрес:</strong> г. Санкт-Петербург, ул. 1-я Красноармейская, д. 15</li>
+                <li><strong>Часы работы:</strong> Пн–Пт: 9:00–18:00, Сб–Вс: 10:00–16:00</li>
+            </ul>
+        </div>
         <p>&copy; 2025 SmartHome. Все права защищены.</p>
     </footer>
 </body>

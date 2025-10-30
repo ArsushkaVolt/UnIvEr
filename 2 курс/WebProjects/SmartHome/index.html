@@ -1,30 +1,31 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartHome - Главная</title>
+    <meta name="description" content="SmartHome — умные устройства для дома: лампы, розетки, термостаты.">
     <link rel="stylesheet" href="style.css">
-    <script src="/js/carousel.js" defer></script>
-    <link rel="icon" href="/image/logo smarthome 2.png" />
+    <script src="js/carousel.js" defer></script>
+    <script src="js/cart.js" defer></script>
+    <link rel="icon" href="image/logo smarthome 2.png" />
 </head>
-
 <body>
     <header>
         <nav>
-
             <a href="index.html" class="logo-link">
                 <div class="logo-container">
-                    <img src="/image/logo smarthome 2.png" alt="Логотип SmartHome" class="logo-img">
+                    <img src="image/logo smarthome 2.png" alt="Логотип SmartHome" class="logo-img">
                     <span class="logo-text">SmartHome</span>
                 </div>
             </a>
             <ul>
-                <li><a href="index.html">Главная</a></li>
+                <li><a href="index.html" class="active">Главная</a></li>
                 <li><a href="products.html">Товары</a></li>
-                <li><a href="cart.html">Корзина</a></li>
-                <li><a href="contact.html">Контакты</a></li>
+                <li>
+                    <a href="cart.html">Корзина</a>
+                    <span class="cart-badge">0</span>
+                </li>
                 <li><a href="login.html">Вход</a></li>
             </ul>
         </nav>
@@ -36,58 +37,100 @@
             <p>Современные решения для комфорта и безопасности вашего дома</p>
         </section>
 
-
-
         <section class="about">
             <h2>О нас</h2>
             <p>Мы – команда "SmartHome", создающая инновационные решения для автоматизации вашего дома. Наша миссия – сделать вашу жизнь комфортнее и безопаснее с помощью передовых технологий.</p>
         </section>
 
-
-
         <section class="products">
             <h2>Популярные товары</h2>
             <div class="product-grid">
+                <!-- Товар 1 -->
                 <a href="product-lamp.html" class="product-card-link">
-
                     <div class="product-card">
-                        <img src="/image/lamp.jpg" alt="Умная лампа">
+                        <img src="image/lamp.jpg" alt="Умная лампа">
                         <h3>Умная лампа</h3>
                         <p>Цена: 2 990 ₽</p>
+                        <button class="add-to-cart" data-name="Умная лампа" data-price="2990">Добавить в корзину</button>
                     </div>
                 </a>
-                <a href="product-thermostat.html" class="product-card-link">
 
+                <!-- Товар 2 -->
+                <a href="product-thermostat.html" class="product-card-link">
                     <div class="product-card">
-                        <img src="/image/termostate.jpg" alt="Умный термостат">
+                        <img src="image/termostate.jpg" alt="Умный термостат">
                         <h3>Умный термостат</h3>
                         <p>Цена: 9 990 ₽</p>
+                        <button class="add-to-cart" data-name="Умный термостат" data-price="9990">Добавить в корзину</button>
                     </div>
                 </a>
 
+                <!-- Товар 3 -->
                 <a href="product-socket.html" class="product-card-link">
                     <div class="product-card">
-                        <img src="/image/socket.jpg" alt="Умная розетка">
+                        <img src="image/socket.jpg" alt="Умная розетка">
                         <h3>Умная розетка</h3>
                         <p>Цена: 1 990 ₽</p>
+                        <button class="add-to-cart" data-name="Умная розетка" data-price="1990">Добавить в корзину</button>
                     </div>
                 </a>
 
+                <!-- Товар 4 -->
                 <a href="product-sensor.html" class="product-card-link">
                     <div class="product-card">
-                        <img src="/image/Datchik_dvizheniya_IR101_1.jpg" alt="Датчик движения">
+                        <img src="image/Datchik_dvizheniya_IR101_1.jpg" alt="Датчик движения">
                         <h3>Датчик движения</h3>
-                        <p>Цена: 1001 ₽</p>
+                        <p>Цена: 1 001 ₽</p>
+                        <button class="add-to-cart" data-name="Датчик движения" data-price="1001">Добавить в корзину</button>
                     </div>
                 </a>
-                
 
+                <!-- Товар 5 -->
+                <a href="product-camera.html" class="product-card-link">
+                    <div class="product-card">
+                        <img src="image/camera.jpg" alt="Умная камера">
+                        <h3>Умная камера</h3>
+                        <p>Цена: 7 490 ₽</p>
+                        <button class="add-to-cart" data-name="Умная камера" data-price="7490">Добавить в корзину</button>
+                    </div>
+                </a>
+
+                <!-- Товар 6 -->
+                <a href="product-lock.html" class="product-card-link">
+                    <div class="product-card">
+                        <img src="image/lock.jpg" alt="Умный замок">
+                        <h3>Умный замок</h3>
+                        <p>Цена: 12 990 ₽</p>
+                        <button class="add-to-cart" data-name="Умный замок" data-price="12990">Добавить в корзину</button>
+                    </div>
+                </a>
+
+                <!-- Товар 7 -->
+                <a href="product-speaker.html" class="product-card-link">
+                    <div class="product-card">
+                        <img src="image/speaker.jpg" alt="Умная колонка">
+                        <h3>Умная колонка</h3>
+                        <p>Цена: 5 990 ₽</p>
+                        <button class="add-to-cart" data-name="Умная колонка" data-price="5990">Добавить в корзину</button>
+                    </div>
+                </a>
+
+                <!-- Товар 8 -->
+                <a href="product-curtain.html" class="product-card-link">
+                    <div class="product-card">
+                        <img src="image/curtain.jpg" alt="Умные шторы">
+                        <h3>Умные шторы</h3>
+                        <p>Цена: 15 990 ₽</p>
+                        <button class="add-to-cart" data-name="Умные шторы" data-price="15990">Добавить в корзину</button>
+                    </div>
+                </a>
             </div>
             <a href="products.html" class="all-products-link">Все товары</a>
         </section>
+
         <section class="reviews">
             <h2>Отзывы наших клиентов</h2>
-            <div class="review-carousel">
+            <div class="review-carousel" role="region" aria-label="Карусель отзывов">
                 <div class="carousel-container">
                     <div class="carousel-track">
                         <div class="carousel-item">
@@ -102,41 +145,55 @@
                             <p>"Розетка – находка! Включаю чайник с работы, чтобы он ждал меня горячим."</p>
                             <h4>Елена, Казань</h4>
                         </div>
+                        <div class="carousel-item">
+                            <p>"Датчик движения работает идеально, уведомления приходят мгновенно!"</p>
+                            <h4>Игорь, Екатеринбург</h4>
+                        </div>
+                        <div class="carousel-item">
+                            <p>"Очень доволен качеством продукции и поддержкой!"</p>
+                            <h4>Мария, Новосибирск</h4>
+                        </div>
                     </div>
                 </div>
-                <button class="carousel-prev">❮</button>
-                <button class="carousel-next">❯</button>
+                <button class="carousel-prev" aria-label="Предыдущий слайд"></button>
+                <button class="carousel-next" aria-label="Следующий слайд"></button>
             </div>
         </section>
-            
-        
 
         <section class="features">
             <h2>Почему выбирают нас</h2>
             <div class="feature-grid">
                 <div class="feature-card">
-                    <img src="/image/galochka.png" alt="Качество">
+                    <img src="image/galochka.png" alt="">
                     <h3>Качество</h3>
                     <p>Надёжные устройства с долгим сроком службы.</p>
                 </div>
                 <div class="feature-card">
-                    <img src="/image/logo 2.png" alt="Инновации">
+                    <img src="image/8653174.png" alt="">
                     <h3>Инновации</h3>
                     <p>Передовые технологии для вашего дома.</p>
                 </div>
                 <div class="feature-card">
-                    <img src="image/support.png" alt="Поддержка">
+                    <img src="image/support.png" alt="">
                     <h3>Поддержка</h3>
                     <p>Круглосуточная помощь и консультации.</p>
                 </div>
             </div>
         </section>
     </main>
-    </main>
 
     <footer>
+        <div class="contact">
+            <h2>Контакты</h2>
+            <p class="slogan">Ваш умный дом – наша забота!</p>
+            <ul>
+                <li><strong>Телефон:</strong> +7 (495) 123-45-67</li>
+                <li><strong>Email:</strong> <a href="mailto:info@smarthome.ru">info@smarthome.ru</a></li>
+                <li><strong>Адрес:</strong> г. Санкт-Петербург, ул. 1-я Красноармейская, д. 15</li>
+                <li><strong>Часы работы:</strong> Пн–Пт: 9:00–18:00, Сб–Вс: 10:00–16:00</li>
+            </ul>
+        </div>
         <p>&copy; 2025 SmartHome. Все права защищены.</p>
     </footer>
 </body>
-
 </html>
