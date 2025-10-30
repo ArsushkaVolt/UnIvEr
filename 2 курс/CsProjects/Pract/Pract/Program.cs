@@ -124,7 +124,7 @@ namespace Electronics
         // Статический метод для прослушивания звука работы телевизора
         public static void ListenOperation()
         {
-            Console.WriteLine("Экран телевизора загорелся");
+            Console.WriteLine("Телевизор издает звуки работы.");
         }
 
         // Перегрузка метода ToString для вывода информации о телевизоре
@@ -489,7 +489,7 @@ namespace Electronics
                 Console.WriteLine("\nМеню тестирования интерфейса:");
                 Console.WriteLine("1. Добавить новый объект");
                 Console.WriteLine("2. Вывести свойства объекта");
-                Console.WriteLine("3. Выполнить метод Listen объекта");
+                Console.WriteLine("3. Выполнить метод объекта");
                 Console.WriteLine("4. Вывести все объекты с именами классов");
                 Console.WriteLine("5. Выполнить функцию с объектом");
                 Console.WriteLine("0. Назад");
@@ -592,7 +592,7 @@ namespace Electronics
                         }
                         break;
                     case "3":
-                        // Выполнение метода Listen для объекта по индексу
+                        // Выполнение метода для объекта по индексу
                         if (listenables.Count == 0)
                         {
                             Console.WriteLine("Список пуст. Добавьте объекты с помощью пункта 1.");
