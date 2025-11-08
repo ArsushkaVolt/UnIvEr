@@ -6,6 +6,7 @@
     <title>SmartHome - Корзина</title>
     <link rel="stylesheet" href="style.css">
     <script src="js/cart.js" defer></script>
+    <script src="js/auth-status.js" defer></script>
     <link rel="icon" href="image/logo smarthome 2.png" />
 </head>
 <body>
@@ -25,6 +26,7 @@
                     <span class="cart-badge">0</span>
                 </li>
                 <li><a href="login.html">Вход</a></li>
+                <li><a href="#" id="logout-link" style="display: none;">Выйти</a></li>
             </ul>
         </nav>
     </header>
@@ -44,28 +46,33 @@
             <h2>Оформление заказа</h2>
             <div id="modal-cart-items"></div>
             <div class="modal-total"><strong>Итого: <span id="modal-total">0</span> ₽</strong></div>
+            <!-- В модальном окне checkout-modal -->
             <form id="checkout-form" class="checkout-form">
                 <div class="form-group">
                     <label for="name">ФИО *</label>
-                    <input type="text" id="name" required>
+                    <input type="text" id="name" placeholder="Иванов Иван Иванович" required>
                     <span class="error-message"></span>
                 </div>
+
                 <div class="form-group">
                     <label for="phone">Телефон *</label>
-                    <input type="tel" id="phone" required pattern="\+7\d{10}">
+                    <input type="tel" id="phone" placeholder="+79991234567" required>
                     <span class="error-message"></span>
                 </div>
+
                 <div class="form-group">
                     <label for="email">Email *</label>
-                    <input type="email" id="email" required>
+                    <input type="email" id="email" placeholder="example@domain.com" required>
                     <span class="error-message"></span>
                 </div>
+
                 <div class="form-group">
                     <label for="address">Адрес доставки *</label>
-                    <textarea id="address" required rows="2"></textarea>
+                    <input type="text" id="address" placeholder="г. Москва, ул. Ленина, д. 10, кв. 5" required>
                     <span class="error-message"></span>
                 </div>
-                <button type="submit" class="auth-button">Подтвердить заказ</button>
+
+                <button type="submit" class="auth-button">Оформить заказ</button>
             </form>
         </div>
     </div>
