@@ -1,4 +1,3 @@
-// js/cart.js — ПОЛНАЯ РАБОЧАЯ ВЕРСИЯ
 document.addEventListener('DOMContentLoaded', () => {
     const CART_STORAGE_KEY = 'smarthome_cart';
     const modal = document.getElementById('checkout-modal');
