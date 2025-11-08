@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartHome - Личный кабинет</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="js/profile.js" defer></script>
+    <script src="js/auth-status.js" defer></script>
+    <link rel="icon" href="image/logo smarthome 2.png" />
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo-link">
+                <div class="logo-container">
+                    <img src="image/logo smarthome 2.png" alt="Логотип SmartHome" class="logo-img">
+                    <span class="logo-text">SmartHome</span>
+                </div>
+            </a>
+            <ul>
+                <li><a href="index.html">Главная</a></li>
+                <li><a href="products.html">Товары</a></li>
+                <li>
+                    <a href="cart.html">Корзина</a>
+                    <span class="cart-badge">0</span>
+                </li>
+                <li><a href="login.html">Личный кабинет</a></li>
+                <li><a href="#" id="logout-link" style="display: none;" >Выйти</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="profile">
+            <h2>Личный кабинет</h2>
+            <div class="profile-container">
+                <!-- ПРОФИЛЬ -->
+                <div class="profile-info">
+                    <h3>Ваши данные</h3>
+                    <div class="info-item">
+                        <strong>ФИО:</strong> <span id="profile-name">—</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Email:</strong> <span id="profile-email">—</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Телефон:</strong> <span id="profile-phone">—</span>
+                    </div>
+                    <button class="edit-profile-btn">Редактировать</button>
+                </div>
+
+                <!-- ЗАКАЗЫ -->
+                <div class="profile-orders">
+                    <h3>Ваши заказы</h3>
+                    <div id="orders-list">
+                        <p class="no-orders">У вас пока нет заказов</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ -->
+    <div id="edit-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close">x</span>
+            <h3>Редактировать профиль</h3>
+            <form id="edit-form">
+                <div class="form-group">
+                    <label for="edit-name">ФИО</label>
+                    <input type="text" id="edit-name" placeholder="Иванов Иван Иванович" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-phone">Телефон</label>
+                    <input type="tel" id="edit-phone" placeholder="+79991234567" required>
+                </div>
+                <button type="submit" class="auth-button">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div class="contact">
+            <h2>Контакты</h2>
+            <p class="slogan">Ваш умный дом – наша забота!</p>
+            <ul>
+                <li><strong>Телефон:</strong> +7 (495) 123-45-67</li>
+                <li><strong>Email:</strong> <a href="mailto:info@smarthome.ru">info@smarthome.ru</a></li>
+                <li><strong>Адрес:</strong> г. Санкт-Петербург, ул. 1-я Красноармейская, д. 15</li>
+                <li><strong>Часы работы:</strong> Пн–Пт: 9:00–18:00, Сб–Вс: 10:00–16:00</li>
+            </ul>
+        </div>
+        <p>&copy; 2025 SmartHome. Все права защищены.</p>
+    </footer>
+</body>
+</html>

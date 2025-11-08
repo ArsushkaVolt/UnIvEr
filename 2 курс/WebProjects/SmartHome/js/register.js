@@ -1,78 +1,79 @@
-// register.js
+// js/register.js
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('register-form');
 
-    function validateForm(event) {
-        event.preventDefault(); // Предотвращаем стандартную отправку формы
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
         const emailInput = document.getElementById('register-email');
         const passwordInput = document.getElementById('register-password');
-        const confirmPasswordInput = document.getElementById('confirm-password');
+        const confirmInput = document.getElementById('confirm-password');
         const phoneInput = document.getElementById('register-phone');
+
         const email = emailInput.value.trim();
         const password = passwordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
+        const confirm = confirmInput.value;
         const phone = phoneInput.value.trim();
 
-        // Регулярные выражения
-        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(ru|com)$/i;
-        const phonePattern = /^\+7\d{10}$/; // +7 и 10 цифр
-
-        // Очистка предыдущих ошибок
-        [emailInput, passwordInput, confirmPasswordInput, phoneInput].forEach(input => {
+        [emailInput, passwordInput, confirmInput, phoneInput].forEach(input => {
             input.parentNode.classList.remove('invalid');
             const error = input.nextElementSibling;
             if (error) error.textContent = '';
         });
 
-        // Валидация email
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/i;
+        const phonePattern = /^\+7\d{10}$/;
+
         if (!emailPattern.test(email)) {
-            const error = emailInput.nextElementSibling || document.createElement('span');
-            error.className = 'error-message';
-            if (!error.parentNode) emailInput.parentNode.appendChild(error);
-            error.textContent = 'Пожалуйста, введите корректный email с доменом .ru или .com';
-            emailInput.parentNode.classList.add('invalid');
-            emailInput.focus();
-            return false;
+            showError(emailInput, 'Неверный email');
+            return;
         }
 
-        // Валидация пароля
         if (password.length < 6) {
-            const error = passwordInput.nextElementSibling || document.createElement('span');
-            error.className = 'error-message';
-            if (!error.parentNode) passwordInput.parentNode.appendChild(error);
-            error.textContent = 'Пароль должен содержать минимум 6 символов';
-            passwordInput.parentNode.classList.add('invalid');
-            passwordInput.focus();
-            return false;
+            showError(passwordInput, 'Пароль от 6 символов');
+            return;
         }
 
-        // Валидация подтверждения пароля
-        if (password !== confirmPassword) {
-            const error = confirmPasswordInput.nextElementSibling || document.createElement('span');
-            error.className = 'error-message';
-            if (!error.parentNode) confirmPasswordInput.parentNode.appendChild(error);
-            error.textContent = 'Пароли не совпадают';
-            confirmPasswordInput.parentNode.classList.add('invalid');
-            confirmPasswordInput.focus();
-            return false;
+        if (password !== confirm) {
+            showError(confirmInput, 'Пароли не совпадают');
+            return;
         }
 
-        // Валидация номера телефона
         if (!phonePattern.test(phone)) {
-            const error = phoneInput.nextElementSibling || document.createElement('span');
-            error.className = 'error-message';
-            if (!error.parentNode) phoneInput.parentNode.appendChild(error);
-            error.textContent = 'Пожалуйста, введите корректный номер в формате +79991234567';
-            phoneInput.parentNode.classList.add('invalid');
-            phoneInput.focus();
-            return false;
+            showError(phoneInput, 'Формат: +79991234567');
+            return;
         }
 
-        // Успешная валидация
-        alert(`Регистрация успешна. Email: ${email}, Телефон: ${phone}, Пароль: ${password}`);
-        form.reset(); // Очистка формы
-        return true;
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        if (users.some(u => u.email === email)) {
+            showError(emailInput, 'Этот email уже занят');
+            return;
+        }
+
+        users.push({ email, password, phone, name: '' });
+        localStorage.setItem('users', JSON.stringify(users));
+
+        localStorage.setItem('currentUser', JSON.stringify({ email, name: '', phone }));
+
+        showNotification('Регистрация успешна! Вы вошли.');
+        setTimeout(() => window.location.href = 'profile.html', 1000);
+    });
+
+    function showError(input, message) {
+        const error = input.nextElementSibling || document.createElement('span');
+        error.className = 'error-message';
+        error.textContent = message;
+        if (!error.parentNode) input.parentNode.appendChild(error);
+        input.parentNode.classList.add('invalid');
+        input.focus();
     }
 
-    form.addEventListener('submit', validateForm);
+    function showNotification(msg) {
+        const n = document.createElement('div');
+        n.className = 'cart-notification';
+        n.textContent = msg;
+        document.body.appendChild(n);
+        requestAnimationFrame(() => n.style.opacity = '1');
+        setTimeout(() => { n.style.opacity = '0'; setTimeout(() => n.remove(), 300); }, 2000);
+    }
 });
