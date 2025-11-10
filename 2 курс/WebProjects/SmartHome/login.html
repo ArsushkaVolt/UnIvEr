@@ -62,8 +62,34 @@
                 <li><strong>Адрес:</strong> г. Санкт-Петербург, ул. 1-я Красноармейская, д. 15</li>
                 <li><strong>Часы работы:</strong> Пн–Пт: 9:00–18:00, Сб–Вс: 10:00–16:00</li>
             </ul>
+        <!-- КАРТА -->
+        <div class="footer-map">
+            <div id="yandex-map" style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-top: 20px;"></div>
         </div>
-        <p>&copy; 2025 SmartHome. Все права защищены.</p>
+    </div>
+    <p>&copy; 2025 SmartHome. Все права защищены.</p>
     </footer>
+    
+    <!-- Yandex Maps API -->
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+    <script>
+        ymaps.ready(init);
+        function init() {
+            const map = new ymaps.Map("yandex-map", {
+                center: [59.916252, 30.309438], // Координаты адреса
+                zoom: 16,
+                controls: ['zoomControl', 'fullscreenControl']
+            });
+
+            const placemark = new ymaps.Placemark([59.916252, 30.309438], {
+                hintContent: 'SmartHome',
+                balloonContent: '<strong>SmartHome</strong><br>г. Санкт-Петербург, ул. 1-я Красноармейская, д. 15'
+            }, {
+                preset: 'islands#redDotIcon'
+            });
+
+            map.geoObjects.add(placemark);
+        }
+    </script>
 </body>
 </html>

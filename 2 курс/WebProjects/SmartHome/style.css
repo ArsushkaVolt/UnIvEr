@@ -629,6 +629,22 @@ footer p {
     font-size: 0.9rem;
 }
 
+.footer-map {
+    margin-top: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+#yandex-map {
+    width: 100% !important;
+    height: 300px !important;
+}
+
+
+    
+
+
 /* Адаптивность */
 @media (max-width: 768px) {
     nav ul {
@@ -719,6 +735,13 @@ footer p {
 
     footer {
         padding: 1.5rem 0;
+    }
+
+    #yandex-map {
+        height: 250px !important;
+    }
+    .footer-map {
+        margin-top: 16px;
     }
 }
 
@@ -899,6 +922,13 @@ nav ul li a.active { color: #3498db; font-weight: bold; }
 }
 
 /* Личный кабинет */
+
+.profile h2{
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+
 .profile-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
