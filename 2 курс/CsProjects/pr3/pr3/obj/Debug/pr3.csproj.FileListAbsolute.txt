@@ -1,0 +1,7 @@
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\pr3\pr3\bin\Debug\pr3.exe.config
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\pr3\pr3\bin\Debug\pr3.exe
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\pr3\pr3\bin\Debug\pr3.pdb
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\pr3\pr3\obj\Debug\pr3.csproj.AssemblyReference.cache
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\pr3\pr3\obj\Debug\pr3.csproj.CoreCompileInputs.cache
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\pr3\pr3\obj\Debug\pr3.exe
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\2 курс\CsProjects\pr3\pr3\obj\Debug\pr3.pdb
