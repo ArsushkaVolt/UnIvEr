@@ -11,10 +11,10 @@ from PySide6.QtCore import QSize, Qt, Signal
 from PySide6.QtGui import QAction
 
 
-# ==============================================================================
+
 # Класс MinesweeperButton: Кастомная кнопка игрового поля
 # Наследуется от QPushButton для перехвата событий мыши (ЛКМ и ПКМ)
-# ==============================================================================
+
 class MinesweeperButton(QPushButton):
     # Пользовательские сигналы, передающие координаты ячейки (row, col)
     left_clicked = Signal(int, int)   # Сигнал при клике левой кнопкой мыши
@@ -42,9 +42,9 @@ class MinesweeperButton(QPushButton):
         super().mousePressEvent(event)
 
 
-# ==============================================================================
+
 # Класс MinesweeperWindow: Главное окно приложения
-# ==============================================================================
+
 class MinesweeperWindow(QMainWindow):
     def __init__(self, rows=10, cols=10, total_mines=10):
         super().__init__()
@@ -131,9 +131,8 @@ class MinesweeperWindow(QMainWindow):
         self.setStatusBar(QStatusBar(self))
         self.statusBar().showMessage("ЛКМ — открыть ячейку, ПКМ — поставить флаг")
 
-    # ==========================================================================
+
     # Слоты (методы-обработчики событий)
-    # ==========================================================================
     def on_left_click(self, row, col):
         """Слот обработки открытия ячейки (ЛКМ)"""
         btn = self.buttons[(row, col)]
@@ -181,9 +180,7 @@ class MinesweeperWindow(QMainWindow):
         self.statusBar().showMessage("Поле сброшено. Новая игра")
 
 
-# ==============================================================================
 # Точка входа в программу
-# ==============================================================================
 if __name__ == "__main__":
     # Создание объекта приложения Qt (обязательно для любого Qt-приложения)
     app = QApplication(sys.argv)
