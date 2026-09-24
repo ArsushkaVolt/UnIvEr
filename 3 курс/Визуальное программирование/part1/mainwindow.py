@@ -130,7 +130,7 @@ class MinesweeperLayout:
         if self.status_bar:
             self.status_bar.showMessage("Макет сброшен в исходное состояние")
 
-    def show(self):
+    def show(self):u ,
         self.window.show()
 
 
