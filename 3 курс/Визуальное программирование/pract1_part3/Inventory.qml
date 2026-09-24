@@ -9,7 +9,7 @@ Rectangle {
     height: 420
     color: "#23272a" // Тёмный фон приложения
 
-    // Свойства состояния (property): хранят текущие экипированные предметы и выбранную ячейку
+    // Свойства состояния (property): хранят текущие экипированные предметы и выбранную ячейк   у
     property string equippedWeapon: "Нет"
     property string equippedArmor: "Нет"
     property int selectedIndex: -1 // -1 означает, что ничего не выбрано
