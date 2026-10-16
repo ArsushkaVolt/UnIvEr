@@ -1,0 +1,8 @@
+﻿  ConsoleApplication1.cpp
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\3 курс\Комп. графика и геометрия\Pr3\ConsoleApplication1\ConsoleApplication1.cpp(113,34): warning C4267: аргумент: преобразование из "size_t" в "GLsizei"; возможна потеря данных
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\3 курс\Комп. графика и геометрия\Pr3\ConsoleApplication1\ConsoleApplication1.cpp(115,35): warning C4267: аргумент: преобразование из "size_t" в "GLsizei"; возможна потеря данных
+C:\Users\BaitPro\Documents\GitHub\UnIvEr\3 курс\Комп. графика и геометрия\Pr3\ConsoleApplication1\ConsoleApplication1.cpp(212,26): warning C4018: <: несоответствие типов со знаком и без знака
+glew32sd.lib(glew.obj) : warning LNK4099: "glew_static.pdb" PDB не найден с "glew32sd.lib(glew.obj)" или на "C:\Users\BaitPro\Documents\GitHub\UnIvEr\3 курс\Комп. графика и геометрия\Pr3\x64\Debug\glew_static.pdb"; компоновка объекта выполняется как при отсутствии отладочных данных
+  ConsoleApplication1.vcxproj -> C:\Users\BaitPro\Documents\GitHub\UnIvEr\3 курс\Комп. графика и геометрия\Pr3\x64\Debug\ConsoleApplication1.exe
+  "pwsh.exe" не является внутренней или внешней
+  командой, исполняемой программой или пакетным файлом.
