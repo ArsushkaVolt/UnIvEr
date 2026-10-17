@@ -1,174 +1,342 @@
-﻿#include <GL/glew.h>  // Подключаем GLEW (загрузчик расширений OpenGL)
-#include <GLFW/glfw3.h> // Подключаем GLFW (управление окнами и вводом)
-#include <iostream>
+﻿#include <iostream>
+#include <vector>
+#include <cmath>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
 
-// 1. ШЕЙДЕРЫ (GLSL)
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
-// Вершинный шейдер: обрабатывает геометрию (вершины)
-const char* vertexShaderSource = "#version 460 core\n"
-"layout (location = 0) in vec3 aPos;\n"   // Атрибут 0: Координаты вершины (X, Y, Z)
-"layout (location = 1) in vec3 aColor;\n" // Атрибут 1: Цвет вершины (R, G, B)
-"out vec3 ourColor;\n"                   // Выходной интерполируемый цвет для фрагментного шейдера
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos, 1.0);\n"     // Преобразуем vec3 в vec4 (w = 1.0) и передаем в OpenGL
-"   ourColor = aColor;\n"                // Пробрасываем цвет дальше по конвейеру
-"}\n";
+// -----------------------------------------------------------------------------
+// Глобальные переменные
+// -----------------------------------------------------------------------------
+int WinWidth = 800;   // Ширина окна
+int WinHeight = 600;  // Высота окна
+int currentTask = 1;  // Номер активного задания (1-8)
 
-// Фрагментный шейдер: вычисляет итоговый цвет каждого пикселя
-const char* fragmentShaderSource = "#version 460 core\n"
-"in vec3 ourColor;\n"                   // Входной цвет от вершинного шейдера
-"out vec4 FragColor;\n"                 // Итоговый цвет пикселя (RGBA)
-"void main()\n"
-"{\n"
-"   FragColor = vec4(ourColor, 1.0f);\n" // Задаем цвет с альфа-каналом (прозрачностью) = 1.0
-"}\n";
+GLuint programGouraud = 0; // Идентификатор шейдера с плавным тонированием
+GLuint programFlat = 0;    // Идентификатор шейдера с плоским (Flat) тонированием
 
-int main() {
-   
-    // 2. ИНИЦИАЛИЗАЦИЯ И НАСТРОЙКА ОКНА (GLFW)
-   
+// -----------------------------------------------------------------------------
+// Шейдеры GLSL
+// -----------------------------------------------------------------------------
 
- 
-    if (!glfwInit()) return -1;
+// Вершинный шейдер (Smooth / Gouraud)[cite: 29]
+const char* vsSourceSmooth = R"(
+#version 400
+in vec3 vertex_position;
+in vec3 vertex_colour;
+out vec3 colour;
+void main() {
+    colour = vertex_colour;
+    gl_Position = vec4(vertex_position, 1.0);
+}
+)";
 
-    // Настраиваем профиль и версию OpenGL (4.6 Core Profile)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+// Фрагментный шейдер (Smooth / Gouraud)[cite: 30]
+const char* fsSourceSmooth = R"(
+#version 400
+in vec3 colour;
+out vec4 frag_colour;
+void main() {
+    frag_colour = vec4(colour, 1.0);
+}
+)";
 
-    // Создаем окно приложения размером 800x600 пикселей
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Colored Triangles", NULL, NULL);
-    if (!window) {
-        glfwTerminate(); // Завершаем работу, если окно не создалось
-        return -1;
+// Вершинный шейдер (Flat shading)
+const char* vsSourceFlat = R"(
+#version 400
+in vec3 vertex_position;
+in vec3 vertex_colour;
+flat out vec3 colour;
+void main() {
+    colour = vertex_colour;
+    gl_Position = vec4(vertex_position, 1.0);
+}
+)";
+
+// Фрагментный шейдер (Flat shading)[cite: 37]
+const char* fsSourceFlat = R"(
+#version 400
+flat in vec3 colour;
+out vec4 frag_colour;
+void main() {
+    frag_colour = vec4(colour, 1.0);
+}
+)";
+
+// -----------------------------------------------------------------------------
+// Вспомогательные функции OpenGL
+// -----------------------------------------------------------------------------
+
+// Компиляция и сборка шейдерной программы[cite: 13, 14, 30]
+GLuint createShaderProgram(const char* vsText, const char* fsText) {
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER); //[cite: 13]
+    glShaderSource(vs, 1, &vsText, NULL); //[cite: 13]
+    glCompileShader(vs); //[cite: 13]
+
+    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER); //[cite: 14]
+    glShaderSource(fs, 1, &fsText, NULL); //[cite: 14]
+    glCompileShader(fs); //[cite: 14]
+
+    GLuint program = glCreateProgram(); //[cite: 14]
+    glAttachShader(program, vs); //[cite: 14]
+    glAttachShader(program, fs); //[cite: 14]
+    glBindAttribLocation(program, 0, "vertex_position"); //[cite: 30]
+    glBindAttribLocation(program, 1, "vertex_colour"); //[cite: 30]
+    glLinkProgram(program); //[cite: 14]
+
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+    return program;
+}
+
+// Создание VAO и VBO для координат и цветов[cite: 11, 12, 28, 29]
+GLuint createVAO(const std::vector<float>& positions, const std::vector<float>& colors) {
+    GLuint vao = 0, vboPos = 0, vboCol = 0;
+    glGenVertexArrays(1, &vao); //
+    glBindVertexArray(vao); //[cite: 12]
+
+    // VBO Координат[cite: 11]
+    glGenBuffers(1, &vboPos); //[cite: 11]
+    glBindBuffer(GL_ARRAY_BUFFER, vboPos); //[cite: 11]
+    glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(float), positions.data(), GL_STATIC_DRAW); //[cite: 11]
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL); //[cite: 12, 29]
+    glEnableVertexAttribArray(0); //[cite: 12, 29]
+
+    // VBO Цветов[cite: 28]
+    glGenBuffers(1, &vboCol); //[cite: 28]
+    glBindBuffer(GL_ARRAY_BUFFER, vboCol); //[cite: 28]
+    glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(float), colors.data(), GL_STATIC_DRAW); //[cite: 28]
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL); //[cite: 29]
+    glEnableVertexAttribArray(1); //[cite: 29]
+
+    glBindVertexArray(0);
+    return vao;
+}
+
+// -----------------------------------------------------------------------------
+// Обработчики событий GLFW
+// -----------------------------------------------------------------------------
+
+void glfw_window_size_callback(GLFWwindow* window, int width, int height) {
+    WinWidth = width;
+    WinHeight = height;
+    glViewport(0, 0, WinWidth, WinHeight); //[cite: 17]
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (action == GLFW_PRESS) {
+        if (key == GLFW_KEY_ESCAPE) {
+            glfwSetWindowShouldClose(window, 1); //[cite: 17, 18]
+        }
+        if (key >= GLFW_KEY_1 && key <= GLFW_KEY_8) {
+            currentTask = key - GLFW_KEY_0;
+            std::cout << "Переключение на Задание № " << currentTask << std::endl;
+        }
     }
+}
 
-    // Делаем контекст созданного окна текущим для вызывающих потоков
-    glfwMakeContextCurrent(window);
+// -----------------------------------------------------------------------------
+// Генерация геометрии
+// -----------------------------------------------------------------------------
 
-  
-    // 3. ИНИЦИАЛИЗАЦИЯ ЗАГРУЗЧИКА ФУНКЦИЙ (GLEW)
-  
+// Задание 1, 2, 6: Генерация N-угольника (N = 7 для Варианта 2)[cite: 39, 40]
+void generateNGon(int n, float radius, std::vector<float>& pos, std::vector<float>& col) {
+    pos.clear(); col.clear();
+    for (int i = 0; i < n; ++i) {
+        float angle = 2.0f * M_PI * i / n;
+        pos.push_back(radius * cos(angle));
+        pos.push_back(radius * sin(angle));
+        pos.push_back(0.0f);
 
-    glewExperimental = GL_TRUE; // Разрешаем использование соврменных функций OpenGL
-    if (glewInit() != GLEW_OK) {
-        std::cout << "Failed to initialize GLEW" << std::endl;
-        return -1;
+        col.push_back((float)i / n);
+        col.push_back(1.0f - (float)i / n);
+        col.push_back(0.5f + 0.5f * sin(angle));
     }
+}
 
-    // Устанавливаем область вывода (Viewport) под размеры созданного окна
-    glViewport(0, 0, 800, 600);
+// Задание 3: Фигура 1 (Разомкнутая ломаная)[cite: 39, 40]
+void generateFigure1(std::vector<float>& pos, std::vector<float>& col) {
+    pos = {
+       -0.8f,  0.5f, 0.0f,
+       -0.6f, -0.4f, 0.0f,
+       -0.4f,  0.1f, 0.0f,
+        0.0f,  0.1f, 0.0f,
+       -0.1f,  0.6f, 0.0f,
+        0.6f,  0.6f, 0.0f,
+        0.0f, -0.5f, 0.0f
+    };
+    col = {
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 0.0f,
+        1.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 1.0f,
+        1.0f, 0.5f, 0.0f
+    };
+}
 
-  
-    // 4. КОМПИЛЯЦИЯ И СБОРКА ШЕЙДЕРОВ
-   
+// Задание 4: Фигура 2 (Замкнутая ломаная "Сигма")[cite: 39, 40]
+void generateFigure2(std::vector<float>& pos, std::vector<float>& col) {
+    pos = {
+       -0.7f,  0.6f, 0.0f,
+        0.5f,  0.6f, 0.0f,
+        0.1f,  0.3f, 0.0f,
+        0.1f, -0.2f, 0.0f,
+        0.5f, -0.2f, 0.0f,
+        0.5f, -0.6f, 0.0f,
+       -0.5f, -0.6f, 0.0f,
+       -0.1f, -0.1f, 0.0f
+    };
+    col = {
+        1.0f, 0.2f, 0.2f,
+        0.2f, 1.0f, 0.2f,
+        0.2f, 0.2f, 1.0f,
+        1.0f, 1.0f, 0.2f,
+        0.2f, 1.0f, 1.0f,
+        1.0f, 0.2f, 1.0f,
+        0.5f, 0.5f, 0.5f,
+        1.0f, 0.5f, 0.0f
+    };
+}
 
-    // Создаем и компилируем вершинный шейдер
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-
-    // Создаем и компилируем фрагментный шейдер
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    // Создаем шейдерную программу и связываем шейдеры в единое целое
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    // Удаляем исходные объекты шейдеров, так как они уже скомпонованы в программу
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-
-    // 5. ПОДГОТОВКА ДАННЫХ И БУФЕРОВ (VAO, VBO)
-  
-
-    // Массив вершин: 9 вершин (по 3 на треугольник).
-    // Каждая вершина описывается 6 числами: PosX, PosY, PosZ, ColorR, ColorG, ColorB
-    GLfloat vertices[] = {
-        // --- 1-й треугольник (Красный) ---
-        // Позиция            // Цвет (RGB)
-        -0.3f,  0.1f, 0.0f,   1.0f, 0.0f, 0.0f,
-         0.3f,  0.1f, 0.0f,   1.0f, 0.0f, 0.0f,
-         0.0f,  0.7f, 0.0f,   1.0f, 0.0f, 0.0f,
-
-         // --- 2-й треугольник (Зеленый) ---
-         -0.8f, -0.7f, 0.0f,   0.0f, 1.0f, 0.0f,
-         -0.2f, -0.7f, 0.0f,   0.0f, 1.0f, 0.0f,
-         -0.5f, -0.1f, 0.0f,   0.0f, 1.0f, 0.0f,
-
-         // --- 3-й треугольник (Синий) ---
-          0.2f, -0.7f, 0.0f,   0.0f, 0.0f, 1.0f,
-          0.8f, -0.7f, 0.0f,   0.0f, 0.0f, 1.0f,
-          0.5f, -0.1f, 0.0f,   0.0f, 0.0f, 1.0f
+// Задания 5, 7, 8: Фигура 3 (Триангулированная многоугольная сетка)[cite: 39, 40]
+void generateFigure3Triangles(std::vector<float>& pos, std::vector<float>& col) {
+    pos = {
+        // Треугольник 1
+       -0.7f,  0.2f, 0.0f,  -0.2f,  0.8f, 0.0f,   0.1f,  0.4f, 0.0f,
+       // Треугольник 2
+      -0.2f,  0.8f, 0.0f,   0.6f,  0.7f, 0.0f,   0.1f,  0.4f, 0.0f,
+      // Треугольник 3
+      0.6f,  0.7f, 0.0f,   0.7f, -0.1f, 0.0f,   0.1f,  0.4f, 0.0f,
+      // Треугольник 4
+      0.7f, -0.1f, 0.0f,   0.3f, -0.6f, 0.0f,   0.2f, -0.4f, 0.0f,
+      // Треугольник 5
+      0.7f, -0.1f, 0.0f,   0.2f, -0.4f, 0.0f,   0.1f,  0.4f, 0.0f,
+      // Треугольник 6
+     -0.7f,  0.2f, 0.0f,   0.1f,  0.4f, 0.0f,  -0.4f, -0.3f, 0.0f
     };
 
-    GLuint VAO, VBO;
-    glGenVertexArrays(1, &VAO); // Генерируем ID для Vertex Array Object (VAO)
-    glGenBuffers(1, &VBO);      // Генерируем ID для Vertex Buffer Object (VBO)
+    col = {
+        1.0f,0.0f,0.0f,  1.0f,0.0f,0.0f,  1.0f,0.0f,0.0f, // 1: Красный
+        0.0f,1.0f,0.0f,  0.0f,1.0f,0.0f,  0.0f,1.0f,0.0f, // 2: Зеленый
+        0.0f,0.0f,1.0f,  0.0f,0.0f,1.0f,  0.0f,0.0f,1.0f, // 3: Синий
+        1.0f,1.0f,0.0f,  1.0f,1.0f,0.0f,  1.0f,1.0f,0.0f, // 4: Желтый
+        1.0f,0.0f,1.0f,  1.0f,0.0f,1.0f,  1.0f,0.0f,1.0f, // 5: Пурпурный
+        0.0f,1.0f,1.0f,  0.0f,1.0f,1.0f,  0.0f,1.0f,1.0f  // 6: Голубой
+    };
+}
 
-    // Привязываем VAO для записи конфигурации атрибутов
-    glBindVertexArray(VAO);
+// -----------------------------------------------------------------------------
+// Главная функция
+// -----------------------------------------------------------------------------
+int main() {
+    if (!glfwInit()) return -1; //[cite: 10]
 
-    // Привязываем VBO и копируем данные массива в видеопамять
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // Вычисляем шаг (stride) — разница в байтах между начальными элементами двух вершин
-    GLsizei stride = 6 * sizeof(float);
-
-    // Настраиваем layout 0 (Координаты): 3 элемента float, отступ от начала = 0
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Настраиваем layout 1 (Цвет): 3 элемента float, смещение в вершине = 3 * sizeof(float)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    // Отвязываем буферы для предотвращения случайных изменений
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
- 
-    // 6. ГЛАВНЫЙ ИГРОВОЙ ЦИКЛ (RENDER LOOP)
-   
-
-    while (!glfwWindowShouldClose(window)) {
-        // Очищаем экран фоновым темным цветом
-        glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        // Активируем шейдерную программу
-        glUseProgram(shaderProgram);
-
-        // Привязываем сохраненную конфигурацию вершин
-        glBindVertexArray(VAO);
-
-        // Отрисовываем 9 вершин как треугольники
-        glDrawArrays(GL_TRIANGLES, 0, 9);
-
-        // Меняем задний буфер кадра с передним (double buffering)
-        glfwSwapBuffers(window);
-
-        // Обрабатываем события ввода (клавиатура, мышь, закрытие окна)
-        glfwPollEvents();
+    GLFWwindow* window = glfwCreateWindow(WinWidth, WinHeight, "Практическая работа № 2 - Вариант 2", NULL, NULL); //[cite: 10]
+    if (!window) {
+        glfwTerminate(); //[cite: 15]
+        return -1;
     }
 
-  
-    // 7. ОСВОБОЖДЕНИЕ РЕСУРСОВ
-     
+    glfwMakeContextCurrent(window); //[cite: 10]
+    glewInit(); //[cite: 10]
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteProgram(shaderProgram);
+    glfwSetWindowSizeCallback(window, glfw_window_size_callback); //[cite: 17]
+    glfwSetKeyCallback(window, key_callback); //[cite: 18]
 
-    // Завершаем работу GLFW и освобождаем все ресурсы
-    glfwTerminate();
+    programGouraud = createShaderProgram(vsSourceSmooth, fsSourceSmooth);
+    programFlat = createShaderProgram(vsSourceFlat, fsSourceFlat);
+
+    std::vector<float> ngonPos, ngonCol;
+    generateNGon(7, 0.6f, ngonPos, ngonCol); // 7-угольник для Варианта 2[cite: 40]
+    GLuint vaoNGon = createVAO(ngonPos, ngonCol);
+
+    std::vector<float> fig1Pos, fig1Col;
+    generateFigure1(fig1Pos, fig1Col);
+    GLuint vaoFig1 = createVAO(fig1Pos, fig1Col);
+
+    std::vector<float> fig2Pos, fig2Col;
+    generateFigure2(fig2Pos, fig2Col);
+    GLuint vaoFig2 = createVAO(fig2Pos, fig2Col);
+
+    std::vector<float> fig3Pos, fig3Col;
+    generateFigure3Triangles(fig3Pos, fig3Col);
+    GLuint vaoFig3 = createVAO(fig3Pos, fig3Col);
+
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f); //[cite: 14]
+
+    while (!glfwWindowShouldClose(window)) { //[cite: 15]
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //[cite: 15]
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //[cite: 38]
+
+        switch (currentTask) {
+        case 1: { // Задание 1: Точки правильного 7-угольника[cite: 31, 32, 39]
+            glUseProgram(programGouraud); //[cite: 14]
+            glEnable(GL_POINT_SMOOTH); // Сглаживание точек[cite: 32]
+            glEnable(GL_PROGRAM_POINT_SIZE); //[cite: 32]
+            glPointSize(16.0f); // Размер точек[cite: 31]
+            glBindVertexArray(vaoNGon); //[cite: 14]
+            glDrawArrays(GL_POINTS, 0, 7); //[cite: 31]
+            break;
+        }
+        case 2: { // Задание 2: Правильный 7-угольник линиями[cite: 33, 39]
+            glUseProgram(programGouraud); //[cite: 14]
+            glLineWidth(3.0f); // Толщина линий
+            glEnable(GL_LINE_SMOOTH); // Сглаживание линий
+            glBindVertexArray(vaoNGon); //[cite: 14]
+            glDrawArrays(GL_LINE_LOOP, 0, 7); //
+            break;
+        }
+        case 3: { // Задание 3: Фигура 1 — Разомкнутая ломаная[cite: 33, 39]
+            glUseProgram(programGouraud); //[cite: 14]
+            glLineWidth(3.0f); //[cite: 33]
+            glBindVertexArray(vaoFig1); //[cite: 14]
+            glDrawArrays(GL_LINE_STRIP, 0, fig1Pos.size() / 3); //[cite: 33]
+            break;
+        }
+        case 4: { // Задание 4: Фигура 2 — Замкнутая ломаная[cite: 34, 39]
+            glUseProgram(programGouraud); //[cite: 14]
+            glLineWidth(3.0f); //[cite: 33]
+            glBindVertexArray(vaoFig2); //[cite: 14]
+            glDrawArrays(GL_LINE_LOOP, 0, fig2Pos.size() / 3); //
+            break;
+        }
+        case 5: { // Задание 5: Фигура 2 — Разбиение на треугольники[cite: 34, 35, 39]
+            glUseProgram(programGouraud); //[cite: 14]
+            glBindVertexArray(vaoFig2); //[cite: 14]
+            glDrawArrays(GL_TRIANGLE_FAN, 0, fig2Pos.size() / 3); //
+            break;
+        }
+        case 6: { // Задание 6: Правильный 7-угольник веером треугольников[cite: 36, 39]
+            glUseProgram(programGouraud); //[cite: 14]
+            glBindVertexArray(vaoNGon); //[cite: 14]
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 7); //
+            break;
+        }
+        case 7: { // Задание 7: Фигура 3 — Различные способы тонирования (Flat Shading)[cite: 37, 39]
+            glUseProgram(programFlat); //[cite: 14, 37]
+            glBindVertexArray(vaoFig3); //[cite: 14]
+            glDrawArrays(GL_TRIANGLES, 0, fig3Pos.size() / 3); //[cite: 34]
+            break;
+        }
+        case 8: { // Задание 8: Режимы отображения граней (glPolygonMode)[cite: 38, 39]
+            glUseProgram(programGouraud); //[cite: 14]
+            glBindVertexArray(vaoFig3); //[cite: 14]
+            glPolygonMode(GL_FRONT, GL_FILL); //[cite: 38]
+            glPolygonMode(GL_BACK, GL_LINE);  //[cite: 38]
+            glDrawArrays(GL_TRIANGLES, 0, fig3Pos.size() / 3); //[cite: 34]
+            break;
+        }
+        }
+
+        glfwPollEvents(); //[cite: 15]
+        glfwSwapBuffers(window); //[cite: 15]
+    }
+
+    glfwTerminate(); //[cite: 15]
     return 0;
 }
