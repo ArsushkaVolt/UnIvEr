@@ -1,0 +1,42 @@
+[
+    {
+        "name": "Llanowar Elves",
+        "type": "Creature",
+        "color": "Green",
+        "price": 0.5,
+        "attack": 1,
+        "health": 1,
+        "text": "{T}: Add {G}.",
+        "features": "-"
+    },
+    {
+        "name": "Black Lotus",
+        "type": "Artifact",
+        "color": "Colorless",
+        "price": 100000.0,
+        "attack": 0,
+        "health": 0,
+        "text": "{T}, Sacrifice Black Lotus: Add three mana of any single color.",
+        "features": "-"
+    },
+    {
+        "name": "Jace, the Mind Sculptor",
+        "type": "Planeswalker",
+        "color": "Blue",
+        "price": 45.0,
+        "attack": 0,
+        "health": 3,
+        "text": "+2: Look at top card. 0: Draw 3 cards...",
+        "features": "Loyalty: 3, Planeswalker - Jace"
+    },
+    {
+        "name": "Lightning Bolt",
+        "type": "Instant",
+        "color": "Red",
+        "price": 1.5,
+        "attack": 0,
+        "health": 0,
+        "text": "Lightning Bolt deals 3 damage to any target.",
+        "features": "-"
+    }
+]
