@@ -1,10 +1,4 @@
 ﻿  ConsoleApplication1.cpp
-C:\Users\BaitPro\Documents\GitHub\UnIvEr\3 курс\Комп. графика и геометрия\Pr2\ConsoleApplication1\ConsoleApplication1.cpp(149,21): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
-C:\Users\BaitPro\Documents\GitHub\UnIvEr\3 курс\Комп. графика и геометрия\Pr2\ConsoleApplication1\ConsoleApplication1.cpp(309,59): warning C4267: аргумент: преобразование из "size_t" в "GLsizei"; возможна потеря данных
-C:\Users\BaitPro\Documents\GitHub\UnIvEr\3 курс\Комп. графика и геометрия\Pr2\ConsoleApplication1\ConsoleApplication1.cpp(316,58): warning C4267: аргумент: преобразование из "size_t" в "GLsizei"; возможна потеря данных
-C:\Users\BaitPro\Documents\GitHub\UnIvEr\3 курс\Комп. графика и геометрия\Pr2\ConsoleApplication1\ConsoleApplication1.cpp(322,61): warning C4267: аргумент: преобразование из "size_t" в "GLsizei"; возможна потеря данных
-C:\Users\BaitPro\Documents\GitHub\UnIvEr\3 курс\Комп. графика и геометрия\Pr2\ConsoleApplication1\ConsoleApplication1.cpp(334,58): warning C4267: аргумент: преобразование из "size_t" в "GLsizei"; возможна потеря данных
-C:\Users\BaitPro\Documents\GitHub\UnIvEr\3 курс\Комп. графика и геометрия\Pr2\ConsoleApplication1\ConsoleApplication1.cpp(342,58): warning C4267: аргумент: преобразование из "size_t" в "GLsizei"; возможна потеря данных
   ConsoleApplication1.vcxproj -> C:\Users\BaitPro\Documents\GitHub\UnIvEr\3 курс\Комп. графика и геометрия\Pr2\x64\Debug\ConsoleApplication1.exe
   "pwsh.exe" не является внутренней или внешней
   командой, исполняемой программой или пакетным файлом.
