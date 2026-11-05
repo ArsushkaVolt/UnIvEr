@@ -1,277 +1,267 @@
+import random
 import sys
-import json
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QAbstractListModel, QModelIndex, Qt, QTimer
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QTableWidget, QTableWidgetItem, QPushButton, QLabel, QLineEdit,
-    QComboBox, QTextEdit, QMessageBox, QFileDialog, QFormLayout, QDialog
+    QApplication,
+    QFormLayout,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QListView,
+    QMainWindow,
+    QPushButton,
+    QSlider,
+    QSplitter,
+    QSpinBox,
+    QStatusBar,
+    QTableView,
+    QVBoxLayout,
+    QWidget,
 )
 
-# Начальный набор данных для демонстрации (сет Magic: The Gathering)
-INITIAL_CARDS = [
-    {
-        "name": "Llanowar Elves",
-        "type": "Creature",
-        "color": "Green",
-        "price": 0.50,
-        "attack": 1,
-        "health": 1,
-        "text": "{T}: Add {G}.",
-        "features": "-"
-    },
-    {
-        "name": "Black Lotus",
-        "type": "Artifact",
-        "color": "Colorless",
-        "price": 100000.0,
-        "attack": 0,
-        "health": 0,
-        "text": "{T}, Sacrifice Black Lotus: Add three mana of any single color.",
-        "features": "-"
-    },
-    {
-        "name": "Jace, the Mind Sculptor",
-        "type": "Planeswalker",
-        "color": "Blue",
-        "price": 45.0,
-        "attack": 0,
-        "health": 3,
-        "text": "+2: Look at top card. 0: Draw 3 cards...",
-        "features": "Loyalty: 3, Planeswalker - Jace"
-    },
-    {
-        "name": "Lightning Bolt",
-        "type": "Instant",
-        "color": "Red",
-        "price": 1.50,
-        "attack": 0,
-        "health": 0,
-        "text": "Lightning Bolt deals 3 damage to any target.",
-        "features": "-"
+
+# Структура данных покупателя
+class Customer:
+
+  def __init__(self, name, drink_id, drink_name, price, budget, max_wait):
+    self.name = name
+    self.drink_id = drink_id
+    self.drink_name = drink_name
+    self.price = price
+    self.budget = budget
+    self.max_wait = max_wait
+    self.current_wait = 0
+    self.status_info = 'В очереди'
+
+
+# Собственная модель данных, унаследованная от QAbstractListModel
+class CustomerListModel(QAbstractListModel):
+
+  def __init__(self, customers=None, parent=None):
+    super().__init__(parent)
+    self.customers = customers if customers is not None else []
+
+  def rowCount(self, parent=QModelIndex()):
+    return len(self.customers)
+
+  def data(self, index, role=Qt.DisplayRole):
+    if not index.isValid():
+      return None
+    row = index.row()
+    if row < 0 or row >= len(self.customers):
+      return None
+
+    cust = self.customers[row]
+    if role == Qt.DisplayRole:
+      return (
+          f'{cust.name} | Заказ: {cust.drink_name} ({cust.price} руб.) |'
+          f' Бюджет: {cust.budget} руб. | Ожидание: {cust.current_wait}/'
+          f'{cust.max_wait}с | Статус: {cust.status_info}'
+      )
+    return None
+
+  def add_customer(self, customer):
+    self.beginInsertRows(QModelIndex(), len(self.customers), len(self.customers))
+    self.customers.append(customer)
+    self.endInsertRows()
+
+  def remove_customer(self, row):
+    if 0 <= row < len(self.customers):
+      self.beginRemoveRows(QModelIndex(), row, row)
+      cust = self.customers.pop(row)
+      self.endRemoveRows()
+      return cust
+    return None
+
+  def clear(self):
+    self.beginResetModel()
+    self.customers.clear()
+    self.endResetModel()
+
+
+class CoffeeMachineWindow(QMainWindow):
+
+  def __init__(self):
+    super().__init__()
+    self.setWindowTitle(
+        'Практическая работа №4 - Автомат по продаже кофе (Вариант 21)'
+    )
+    self.resize(1000, 650)
+
+    # Меню напитков (id: [название, цена, время приготовления в сек])
+    self.drinks = {
+        1: {'name': 'Эспрессо', 'price': 100, 'time': 2},
+        2: {'name': 'Капучино', 'price': 150, 'time': 3},
+        3: {'name': 'Латте', 'price': 180, 'time': 4},
+        4: {'name': 'Раф', 'price': 220, 'time': 5},
     }
-]
 
-class AddCardDialog(QDialog):
-    """Диалоговое окно для добавления новой карты в базу."""
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("Добавить новую карту")
-        self.resize(320, 380)
+    # Инициализация моделей (MVC)
+    self.queue_model = CustomerListModel()
+    self.satisfied_model = CustomerListModel()
+    self.dissatisfied_model = CustomerListModel()
 
-        layout = QFormLayout(self)
+    self.current_processing_customer = None
+    self.processing_time_left = 0
 
-        self.name_input = QLineEdit()
-        self.type_combo = QComboBox()
-        self.type_combo.addItems(["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land"])
-        self.color_combo = QComboBox()
-        self.color_combo.addItems(["White", "Blue", "Black", "Red", "Green", "Colorless", "Multi-color"])
-        self.price_input = QLineEdit("0.0")
-        self.attack_input = QLineEdit("0")
-        self.health_input = QLineEdit("0")
-        self.text_input = QTextEdit()
-        self.features_input = QLineEdit("-")
+    self.init_ui()
 
-        layout.addRow("Название:", self.name_input)
-        layout.addRow("Тип:", self.type_combo)
-        layout.addRow("Цвет:", self.color_combo)
-        layout.addRow("Цена ($):", self.price_input)
-        layout.addRow("Атака (сущ.):", self.attack_input)
-        layout.addRow("Здоровье (сущ.):", self.health_input)
-        layout.addRow("Особенности:", self.features_input)
-        layout.addRow("Текст карты:", self.text_input)
+    # Таймер симуляции (такт = 1 секунда)
+    self.timer = QTimer(self)
+    self.timer.setInterval(1000)
+    self.timer.timeout.connect(self.simulation_step)
 
-        btn_layout = QHBoxLayout()
-        self.save_btn = QPushButton("Сохранить")
-        self.cancel_btn = QPushButton("Отмена")
-        btn_layout.addWidget(self.save_btn)
-        btn_layout.addWidget(self.cancel_btn)
+  def init_ui(self):
+    central_widget = QWidget()
+    main_layout = QHBoxLayout(central_widget)
 
-        layout.addRow(btn_layout)
+    # Левая панель: Управление и настройки
+    control_layout = QVBoxLayout()
 
-        self.save_btn.clicked.connect(self.accept)
-        self.cancel_btn.clicked.connect(self.reject)
+    form_layout = QFormLayout()
+    self.prob_spin = QSpinBox()
+    self.prob_spin.setRange(5, 100)
+    self.prob_spin.setValue(40)
+    form_layout.addRow('Вероятность нового гостя (%):', self.prob_spin)
 
-    def get_card_data(self):
-        try:
-            price = float(self.price_input.text())
-        except ValueError:
-            price = 0.0
-        try:
-            attack = int(self.attack_input.text())
-        except ValueError:
-            attack = 0
-        try:
-            health = int(self.health_input.text())
-        except ValueError:
-            health = 0
+    self.start_btn = QPushButton('Запустить симуляцию')
+    self.start_btn.clicked.connect(self.toggle_simulation)
+    self.start_btn.setStyleSheet(
+        'background-color: #4CAF50; color: white; font-weight: bold; padding:'
+        ' 8px;'
+    )
 
-        return {
-            "name": self.name_input.text().strip() or "Unnamed",
-            "type": self.type_combo.currentText(),
-            "color": self.color_combo.currentText(),
-            "price": price,
-            "attack": attack,
-            "health": health,
-            "text": self.text_input.toPlainText().strip(),
-            "features": self.features_input.text().strip()
-        }
+    control_layout.addLayout(form_layout)
+    control_layout.addWidget(self.start_btn)
+    control_layout.addStretch()
 
-class MainWindow(QMainWindow):
-    """Главное окно приложения базы карт MTG."""
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("База карт MTG")
-        self.resize(950, 600)
+    # Статус автомата
+    self.status_label = QLabel('Автомат: Свободен')
+    self.status_label.setStyleSheet(
+        'font-size: 14px; font-weight: bold; color: #333;'
+    )
+    control_layout.addWidget(self.status_label)
 
-        self.cards = INITIAL_CARDS.copy()
+    # Правая панель: Списки (Представления / Views)
+    views_layout = QVBoxLayout()
 
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        main_layout = QVBoxLayout(central_widget)
+    # Очередь
+    q_label = QLabel('Очередь покупателей:')
+    self.queue_view = QListView()
+    self.queue_view.setModel(self.queue_model)
 
-        # Панель фильтрации и поиска
-        filter_layout = QHBoxLayout()
+    # Довольные
+    s_label = QLabel('Довольные покупатели (Успешно купили):')
+    self.satisfied_view = QListView()
+    self.satisfied_view.setModel(self.satisfied_model)
 
-        filter_layout.addWidget(QLabel("Поиск по названию:"))
-        self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Введите имя карты...")
-        self.search_input.textChanged.connect(self.filter_cards)
-        filter_layout.addWidget(self.search_input)
+    # Недовольные
+    d_label = QLabel('Недовольные покупатели (Ушли):')
+    self.dissatisfied_view = QListView()
+    self.dissatisfied_view.setModel(self.dissatisfied_model)
 
-        filter_layout.addWidget(QLabel("Фильтр по типу:"))
-        self.type_filter = QComboBox()
-        self.type_filter.addItem("Все типы")
-        self.type_filter.addItems(["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land"])
-        self.type_filter.currentIndexChanged.connect(self.filter_cards)
-        filter_layout.addWidget(self.type_filter)
+    views_layout.addWidget(q_label)
+    views_layout.addWidget(self.queue_view)
+    views_layout.addWidget(s_label)
+    views_layout.addWidget(self.satisfied_view)
+    views_layout.addWidget(d_label)
+    views_layout.addWidget(self.dissatisfied_view)
 
-        main_layout.addLayout(filter_layout)
+    main_layout.addLayout(control_layout, 1)
+    main_layout.addLayout(views_layout, 2)
 
-        # Таблица для вывода карт
-        self.table = QTableWidget()
-        self.table.setColumnCount(7)
-        self.table.setHorizontalHeaderLabels([
-            "Название", "Тип", "Цвет", "Цена ($)", "Атака / Здоровье", "Особенности", "Текст карты"
-        ])
-        self.table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
-        main_layout.addWidget(self.table)
+    self.setCentralWidget(central_widget)
+    self.setStatusBar(QStatusBar())
+    self.statusBar().showMessage('Симуляция остановлена.')
 
-        # Панель кнопок управления
-        btn_layout = QHBoxLayout()
+  def toggle_simulation(self):
+    if not self.timer.isActive():
+      self.timer.start()
+      self.start_btn.setText('Остановить симуляцию')
+      self.start_btn.setStyleSheet(
+          'background-color: #F44336; color: white; font-weight: bold; padding:'
+          ' 8px;'
+      )
+      self.statusBar().showMessage('Симуляция запущенна...')
+    else:
+      self.timer.stop()
+      self.start_btn.setText('Запустить симуляцию')
+      self.start_btn.setStyleSheet(
+          'background-color: #4CAF50; color: white; font-weight: bold; padding:'
+          ' 8px;'
+      )
+      self.statusBar().showMessage('Симуляция остановлена.')
 
-        self.btn_load = QPushButton("Загрузить из JSON")
-        self.btn_load.clicked.connect(self.load_from_file)
-        btn_layout.addWidget(self.btn_load)
+  def simulation_step(self):
+    # 1. Генерация нового покупателя с заданной вероятностью
+    if random.randint(1, 100) <= self.prob_spin.value():
+      c_id = random.randint(100, 999)
+      drink_id = random.choice(list(self.drinks.keys()))
+      drink_info = self.drinks[drink_id]
+      budget = random.randint(80, 250)
+      max_wait = random.randint(5, 15)
 
-        self.btn_save = QPushButton("Сохранить в JSON")
-        self.btn_save.clicked.connect(self.save_to_file)
-        btn_layout.addWidget(self.btn_save)
+      new_customer = Customer(
+          name=f'Покупатель #{c_id}',
+          drink_id=drink_id,
+          drink_name=drink_info['name'],
+          price=drink_info['price'],
+          budget=budget,
+          max_wait=max_wait,
+      )
+      self.queue_model.add_customer(new_customer)
 
-        self.btn_add = QPushButton("Добавить карту")
-        self.btn_add.clicked.connect(self.add_card)
-        btn_layout.addWidget(self.btn_add)
+    # 2. Обработка таймаутов ожидания в очереди
+    i = 0
+    while i < len(self.queue_model.customers):
+      cust = self.queue_model.customers[i]
+      # Если это не текущий обрабатываемый заказчик, увеличиваем время ожидания
+      if cust != self.current_processing_customer:
+        cust.current_wait += 1
+        if cust.current_wait > cust.max_wait:
+          cust.status_info = 'Долго стоял (ушел)'
+          removed = self.queue_model.remove_customer(i)
+          self.dissatisfied_model.add_customer(removed)
+          continue
+      i += 1
 
-        self.btn_delete = QPushButton("Удалить выбранную")
-        self.btn_delete.clicked.connect(self.delete_card)
-        btn_layout.addWidget(self.btn_delete)
+    # 3. Работа автомата
+    if self.current_processing_customer is None:
+      if len(self.queue_model.customers) > 0:
+        # Берём первого из очереди
+        candidate = self.queue_model.customers[0]
+        # Проверяем бюджет
+        if candidate.budget < candidate.price:
+          candidate.status_info = 'Слишком дорого (ушел)'
+          removed = self.queue_model.remove_customer(0)
+          self.dissatisfied_model.add_customer(removed)
+          self.status_label.setText('Автомат: Отказ (нет денег у клиента)')
+        else:
+          # Начинаем готовить
+          self.current_processing_customer = self.queue_model.remove_customer(0)
+          d_id = self.current_processing_customer.drink_id
+          self.processing_time_left = self.drinks[d_id]['time']
+          self.status_label.setText(
+              f'Готовится: {self.current_processing_customer.drink_name} для'
+              f' {self.current_processing_customer.name}'
+          )
+    else:
+      # Процесс приготовления напитка
+      self.processing_time_left -= 1
+      if self.processing_time_left <= 0:
+        self.current_processing_customer.status_info = 'Успешно куплен'
+        self.satisfied_model.add_customer(self.current_processing_customer)
+        self.current_processing_customer = None
+        self.status_label.setText('Автомат: Свободен')
 
-        main_layout.addLayout(btn_layout)
+    # Обновление представлений
+    self.queue_view.viewport().update()
+    self.satisfied_view.viewport().update()
+    self.dissatisfied_view.viewport().update()
 
-        # Первичное заполнение таблицы
-        self.update_table(self.cards)
 
-    def update_table(self, cards_to_show):
-        """Обновление содержимого таблицы на основе переданного списка карт."""
-        self.table.setRowCount(len(cards_to_show))
-        for row, card in enumerate(cards_to_show):
-            self.table.setItem(row, 0, QTableWidgetItem(card.get("name", "")))
-            self.table.setItem(row, 1, QTableWidgetItem(card.get("type", "")))
-            self.table.setItem(row, 2, QTableWidgetItem(card.get("color", "")))
-            self.table.setItem(row, 3, QTableWidgetItem(str(card.get("price", 0.0))))
-
-            # Форматирование характеристик атаки/здоровья в зависимости от типа
-            card_type = card.get("type")
-            if card_type == "Creature":
-                stats = f"{card.get('attack', 0)} / {card.get('health', 0)}"
-            elif card_type == "Planeswalker":
-                stats = f"Loyalty: {card.get('health', 0)}"
-            else:
-                stats = "-"
-            self.table.setItem(row, 4, QTableWidgetItem(stats))
-
-            self.table.setItem(row, 5, QTableWidgetItem(card.get("features", "-")))
-            self.table.setItem(row, 6, QTableWidgetItem(card.get("text", "")))
-
-        self.table.resizeColumnsToContents()
-
-    def filter_cards(self):
-        """Фильтрация списка карт по поисковой строке и выбранному типу."""
-        search_text = self.search_input.text().lower()
-        selected_type = self.type_filter.currentText()
-
-        filtered = []
-        for card in self.cards:
-            name_match = search_text in card.get("name", "").lower()
-            type_match = (selected_type == "Все типы") or (card.get("type") == selected_type)
-
-            if name_match and type_match:
-                filtered.append(card)
-
-        self.update_table(filtered)
-
-    def add_card(self):
-        """Добавление новой карты через диалоговое окно."""
-        dialog = AddCardDialog(self)
-        if dialog.exec() == QDialog.Accepted:
-            new_card = dialog.get_card_data()
-            self.cards.append(new_card)
-            self.filter_cards()
-            QMessageBox.information(self, "Успех", "Карта успешно добавлена в сет!")
-
-    def delete_card(self):
-        """Удаление выбранной карты из таблицы и общего списка."""
-        selected_rows = self.table.selectionModel().selectedRows()
-        if not selected_rows:
-            QMessageBox.warning(self, "Внимание", "Пожалуйста, выберите строку с картой для удаления!")
-            return
-
-        row = selected_rows[0].row()
-        card_name = self.table.item(row, 0).text()
-
-        for card in self.cards:
-            if card.get("name") == card_name:
-                self.cards.remove(card)
-                break
-
-        self.filter_cards()
-        QMessageBox.information(self, "Успех", f"Карта '{card_name}' была удалена.")
-
-    def save_to_file(self):
-        """Сериализация данных и сохранение сета в JSON файл."""
-        file_path, _ = QFileDialog.getSaveFileName(self, "Сохранить сет в JSON", "mtg_set.json", "JSON Files (*.json)")
-        if file_path:
-            try:
-                with open(file_path, "w", encoding="utf-8") as f:
-                    json.dump(self.cards, f, ensure_ascii=False, indent=4)
-                QMessageBox.information(self, "Успех", f"Данные успешно сохранены в файл:\n{file_path}")
-            except Exception as e:
-                QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить файл:\n{e}")
-
-    def load_from_file(self):
-        """Десериализация данных и загрузка сета из JSON файла."""
-        file_path, _ = QFileDialog.getOpenFileName(self, "Загрузить сет из JSON", "", "JSON Files (*.json)")
-        if file_path:
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    self.cards = json.load(f)
-                self.filter_cards()
-                QMessageBox.information(self, "Успех", f"Данные успешно загружены из файла:\n{file_path}")
-            except Exception as e:
-                QMessageBox.critical(self, "Ошибка", f"Не удалось загрузить файл:\n{e}")
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
+if __name__ == '__main__':
+  app = QApplication(sys.argv)
+  window = CoffeeMachineWindow()
+  window.show()
+  sys.exit(app.exec())
