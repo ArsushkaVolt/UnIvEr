@@ -1,410 +1,497 @@
 ﻿#include <iostream>
-#include <vector>
 #include <cmath>
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include <cstdlib>
+#include <ctime>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-// Глобальные переменные
-int WinWidth = 800;
-int WinHeight = 600;
-int currentTask = 1;
-GLuint programGouraud = 0;
-GLuint programFlat = 0;
+const int N = 7;
 
-// -----------------------------------------------------------------------------
-// ШЕЙДЕРЫ GLSL
-// -----------------------------------------------------------------------------
-const char* vsSourceSmooth = R"(
-#version 400
-in vec3 vertex_position;
-in vec3 vertex_colour;
-out vec3 colour;
-void main() {
-    colour = vertex_colour;
-    gl_Position = vec4(vertex_position, 1.0);
-}
-)";
-const char* fsSourceSmooth = R"(
-#version 400
-in vec3 colour;
-out vec4 frag_colour;
-void main() {
-    frag_colour = vec4(colour, 1.0);
-}
-)";
-const char* vsSourceFlat = R"(
-#version 400
-in vec3 vertex_position;
-in vec3 vertex_colour;
-flat out vec3 colour;
-void main() {
-    colour = vertex_colour;
-    gl_Position = vec4(vertex_position, 1.0);
-}
-)";
-const char* fsSourceFlat = R"(
-#version 400
-flat in vec3 colour;
-out vec4 frag_colour;
-void main() {
-    frag_colour = vec4(colour, 1.0);
-}
-)";
+int task = 1;
+int triangulationMode = 1;
+int faceMode = 1;
 
-// -----------------------------------------------------------------------------
-// ФУНКЦИИ ГЕНЕРАЦИИ ГЕОМЕТРИИ (ВАРИАНТ 2)
-// -----------------------------------------------------------------------------
-void generateNGon(int n, float radius, std::vector<float>& pos, std::vector<float>& col) {
-    pos.clear(); col.clear();
-    for (int i = 0; i < n; ++i) {
-        float angle = 2.0f * (float)M_PI * i / n;
-        pos.push_back(radius * cos(angle));
-        pos.push_back(radius * sin(angle));
-        pos.push_back(0.0f);
-        col.push_back((float)i / n);
-        col.push_back(1.0f - (float)i / n);
-        col.push_back(0.5f + 0.5f * sin(angle));
+// Структура вершины: координаты и цвет
+struct Vertex
+{
+    float x, y, z;
+    float r, g, b;
+};
+
+// Создание вершины с заданным цветом (по умолчанию белый)
+Vertex makeVertex(float x, float y,
+    float r = 0.9f,
+    float g = 0.9f,
+    float b = 0.9f)
+{
+    return { x, y, 0.0f, r, g, b };
+}
+
+// Создание вершины со случайным, но ярким и насыщенным цветом для темного фона
+Vertex randomVertex(float x, float y)
+{
+    return makeVertex(
+        x, y,
+        0.4f + float(rand() % 60) / 100.0f, // R: 0.4 - 1.0
+        0.3f + float(rand() % 70) / 100.0f, // G: 0.3 - 1.0
+        0.5f + float(rand() % 50) / 100.0f  // B: 0.5 - 1.0
+    );
+}
+
+// Обработка нажатий клавиш
+void key_callback(GLFWwindow* window, int key,
+    int scancode, int action, int mods)
+{
+    if (action != GLFW_PRESS)
+        return;
+
+    // Переключение между заданиями
+    if (key >= GLFW_KEY_1 && key <= GLFW_KEY_8)
+    {
+        task = key - GLFW_KEY_0;
     }
-}
 
-void generateNGonFan(int n, float radius, std::vector<float>& pos, std::vector<float>& col) {
-    pos.clear(); col.clear();
-    pos.push_back(0.0f); pos.push_back(0.0f); pos.push_back(0.0f);
-    col.push_back(1.0f); col.push_back(1.0f); col.push_back(1.0f);
-    float sectorColors[7][3] = {
-        {1.0f, 0.2f, 0.2f},
-        {0.2f, 1.0f, 0.2f},
-        {0.2f, 0.2f, 1.0f},
-        {1.0f, 1.0f, 0.2f},
-        {1.0f, 0.2f, 1.0f},
-        {0.2f, 1.0f, 1.0f},
-        {1.0f, 0.5f, 0.0f}
-    };
-    for (int i = 0; i <= n; ++i) {
-        int idx = i % n;
-        float angle = 2.0f * (float)M_PI * idx / n;
-        pos.push_back(radius * cos(angle));
-        pos.push_back(radius * sin(angle));
-        pos.push_back(0.0f);
-        col.push_back(sectorColors[idx][0]);
-        col.push_back(sectorColors[idx][1]);
-        col.push_back(sectorColors[idx][2]);
+    // Переключение способов триангуляции в задании 5
+    if (task == 5)
+    {
+        if (key == GLFW_KEY_Q)
+            triangulationMode = 1;
+
+        if (key == GLFW_KEY_W)
+            triangulationMode = 2;
+
+        if (key == GLFW_KEY_E)
+            triangulationMode = 3;
     }
+
+    // Переключение режимов отображения в задании 8
+    if (task == 8)
+    {
+        if (key == GLFW_KEY_Q)
+            faceMode = 1;
+
+        if (key == GLFW_KEY_W)
+            faceMode = 2;
+
+        if (key == GLFW_KEY_E)
+            faceMode = 3;
+    }
+
+    // Выход из программы
+    if (key == GLFW_KEY_ESCAPE)
+        glfwSetWindowShouldClose(window, true);
 }
 
-void generateFigure1(std::vector<float>& pos, std::vector<float>& col) {
-    pos = {
-       -0.8f,  0.5f, 0.0f,
-       -0.6f, -0.4f, 0.0f,
-       -0.4f,  0.1f, 0.0f,
-        0.0f,  0.1f, 0.0f,
-       -0.1f,  0.6f, 0.0f,
-        0.6f,  0.6f, 0.0f,
-        0.0f, -0.5f, 0.0f
-    };
-    col = {
-        1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 0.0f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 1.0f,
-        1.0f, 0.5f, 0.0f
-    };
-}
+// Вершинный шейдер
+const char* vertexShaderSource =
+"#version 400\n"
+"layout(location=0) in vec3 vp;\n"
+"layout(location=1) in vec3 vc;\n"
+"out vec3 color;\n"
+"void main(){\n"
+"    gl_Position = vec4(vp, 1.0);\n"
+"    color = vc;\n"
+"}\n";
 
-// ===== ИСПРАВЛЕННАЯ ФИГУРА 2 (по картинке) =====
-void generateFigure2(std::vector<float>& pos, std::vector<float>& col) {
-    // Контур точно как на изображении
-    pos = {
-        -0.90f,  0.70f, 0.0f,   // 0 верхний левый острый
-         0.90f,  0.70f, 0.0f,   // 1 верхний правый острый
-         0.28f,  0.18f, 0.0f,   // 2 начало ступеньки
-         0.28f, -0.18f, 0.0f,   // 3 внутренний верх ступеньки
-         0.72f, -0.18f, 0.0f,   // 4 внешний верх ступеньки
-         0.72f, -0.70f, 0.0f,   // 5 нижний правый ступеньки
-        -0.90f, -0.70f, 0.0f,   // 6 нижний левый
-        -0.28f, -0.02f, 0.0f    // 7 левый зубец
-    };
-    col = {
-        1.0f, 0.2f, 0.2f,  0.2f, 1.0f, 0.2f,  0.2f, 0.2f, 1.0f,
-        1.0f, 1.0f, 0.2f,  0.2f, 1.0f, 1.0f,  1.0f, 0.2f, 1.0f,
-        0.5f, 0.5f, 0.5f,  1.0f, 0.5f, 0.0f
-    };
-}
+// Фрагментный шейдер
+const char* fragmentShaderSource =
+"#version 400\n"
+"in vec3 color;\n"
+"out vec4 frag_colour;\n"
+"void main(){\n"
+"    frag_colour = vec4(color, 1.0);\n"
+"}\n";
 
-void generateFig2Triangles(std::vector<float>& pos, std::vector<float>& col) {
-    // 6 треугольников, полностью закрывающих фигуру без выхода наружу
-    pos = {
-        // 1. верх
-        -0.90f,  0.70f, 0.0f,   0.90f,  0.70f, 0.0f,   0.28f,  0.18f, 0.0f,
-        // 2. верх-лево
-        -0.90f,  0.70f, 0.0f,   0.28f,  0.18f, 0.0f,  -0.28f, -0.02f, 0.0f,
-        // 3. середина
-         0.28f,  0.18f, 0.0f,   0.28f, -0.18f, 0.0f,  -0.28f, -0.02f, 0.0f,
-         // 4. низ-лево
-         -0.28f, -0.02f, 0.0f,   0.28f, -0.18f, 0.0f,  -0.90f, -0.70f, 0.0f,
-         // 5. ступенька
-          0.28f, -0.18f, 0.0f,   0.72f, -0.18f, 0.0f,   0.72f, -0.70f, 0.0f,
-          // 6. низ
-           0.28f, -0.18f, 0.0f,   0.72f, -0.70f, 0.0f,  -0.90f, -0.70f, 0.0f
-    };
-    col = {
-        1.0f, 0.1f, 0.1f,  1.0f, 0.1f, 0.1f,  1.0f, 0.1f, 0.1f,
-        0.1f, 0.8f, 0.1f,  0.1f, 0.8f, 0.1f,  0.1f, 0.8f, 0.1f,
-        0.1f, 0.4f, 1.0f,  0.1f, 0.4f, 1.0f,  0.1f, 0.4f, 1.0f,
-        1.0f, 0.9f, 0.1f,  1.0f, 0.9f, 0.1f,  1.0f, 0.9f, 0.1f,
-        0.9f, 0.1f, 0.9f,  0.9f, 0.1f, 0.9f,  0.9f, 0.1f, 0.9f,
-        0.1f, 0.9f, 0.9f,  0.1f, 0.9f, 0.9f,  0.1f, 0.9f, 0.9f
-    };
-}
-
-void generateFig2Strip(std::vector<float>& pos, std::vector<float>& col) {
-    // Порядок для TRIANGLE_STRIP
-    pos = {
-        -0.90f,  0.70f, 0.0f,   // A
-         0.90f,  0.70f, 0.0f,   // B
-        -0.28f, -0.02f, 0.0f,   // H
-         0.28f,  0.18f, 0.0f,   // C
-        -0.90f, -0.70f, 0.0f,   // G
-         0.28f, -0.18f, 0.0f,   // D
-         0.72f, -0.70f, 0.0f,   // F
-         0.72f, -0.18f, 0.0f    // E
-    };
-    col = {
-        1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 0.0f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 1.0f,
-        1.0f, 0.5f, 0.0f,  0.5f, 0.0f, 1.0f
-    };
-}
-
-void generateFig2Fan(std::vector<float>& pos, std::vector<float>& col) {
-    // Центр + обход контура
-    pos = {
-         0.00f,  0.00f, 0.0f,   // центр
-        -0.90f,  0.70f, 0.0f,   // A
-         0.90f,  0.70f, 0.0f,   // B
-         0.28f,  0.18f, 0.0f,   // C
-         0.28f, -0.18f, 0.0f,   // D
-         0.72f, -0.18f, 0.0f,   // E
-         0.72f, -0.70f, 0.0f,   // F
-        -0.90f, -0.70f, 0.0f,   // G
-        -0.28f, -0.02f, 0.0f    // H
-    };
-    col = {
-        1.0f, 1.0f, 1.0f,
-        1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 0.0f,
-        1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 1.0f,
-        1.0f, 0.5f, 0.0f,  0.6f, 0.3f, 0.9f
-    };
-}
-
-// Задание 7 и 8: Фигура 3
-void generateFigure3Triangles(std::vector<float>& pos, std::vector<float>& col) {
-    pos = {
-        // Тр. 1 (Красный — верхний левый)
-       -0.80f, -0.15f, 0.0f,  -0.30f,  0.90f, 0.0f,  -0.05f,  0.50f, 0.0f,
-       // Тр. 2 (Зелёный — верхний правый)
-      -0.30f,  0.90f, 0.0f,   0.85f,  0.80f, 0.0f,  -0.05f,  0.50f, 0.0f,
-      // Тр. 3 (Синий — правый)
-      0.85f,  0.80f, 0.0f,   0.95f, -0.25f, 0.0f,  -0.05f,  0.50f, 0.0f,
-      // Тр. 4 (Жёлтый — нижний правый)
-      0.95f, -0.25f, 0.0f,   0.35f, -0.85f, 0.0f,  -0.05f,  0.50f, 0.0f,
-      // Тр. 5 (Пурпурный — средний левый)
-     -0.80f, -0.15f, 0.0f,  -0.05f,  0.50f, 0.0f,  -0.35f, -0.30f, 0.0f,
-     // Тр. 6 (Голубой)
-    -0.80f, -0.15f, 0.0f,  -0.45f, -0.65f, 0.0f,   0.02f, -0.35f, 0.0f
-    };
-    col = {
-        1.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f, 0.0f,
-        0.0f, 0.8f, 0.0f,   0.0f, 0.8f, 0.0f,   0.0f, 0.8f, 0.0f,
-        0.0f, 0.3f, 1.0f,   0.0f, 0.3f, 1.0f,   0.0f, 0.3f, 1.0f,
-        1.0f, 0.9f, 0.0f,   1.0f, 0.9f, 0.0f,   1.0f, 0.9f, 0.0f,
-        0.9f, 0.0f, 0.9f,   0.9f, 0.0f, 0.9f,   0.9f, 0.0f, 0.9f,
-        0.0f, 0.9f, 0.9f,   0.0f, 0.9f, 0.9f,   0.0f, 0.9f, 0.9f
-    };
-}
-
-// -----------------------------------------------------------------------------
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ OPENGL
-// -----------------------------------------------------------------------------
-GLuint createShaderProgram(const char* vsText, const char* fsText) {
+// Создание программы шейдеров
+GLuint createShaderProgram()
+{
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vsText, NULL);
+    glShaderSource(vs, 1, &vertexShaderSource, nullptr);
     glCompileShader(vs);
+
     GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fsText, NULL);
+    glShaderSource(fs, 1, &fragmentShaderSource, nullptr);
     glCompileShader(fs);
+
+    GLint success = GL_FALSE;
+
+    glGetShaderiv(vs, GL_COMPILE_STATUS, &success);
+    if (!success)
+        std::cerr << "Ошибка компиляции вершинного шейдера\n";
+
+    glGetShaderiv(fs, GL_COMPILE_STATUS, &success);
+    if (!success)
+        std::cerr << "Ошибка компиляции фрагментного шейдера\n";
+
     GLuint program = glCreateProgram();
     glAttachShader(program, vs);
     glAttachShader(program, fs);
-    glBindAttribLocation(program, 0, "vertex_position");
-    glBindAttribLocation(program, 1, "vertex_colour");
     glLinkProgram(program);
+
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success)
+        std::cerr << "Ошибка компоновки программы шейдеров\n";
+
     glDeleteShader(vs);
     glDeleteShader(fs);
+
     return program;
 }
 
-GLuint createVAO(const std::vector<float>& positions, const std::vector<float>& colors) {
-    GLuint vao = 0, vboPos = 0, vboCol = 0;
-    glGenVertexArrays(1, &vao);
+// Передача вершин в буфер и отрисовка примитива
+void drawVertices(GLuint vao, GLuint vbo,
+    const Vertex* vertices, int count,
+    GLenum primitive)
+{
     glBindVertexArray(vao);
-    glGenBuffers(1, &vboPos);
-    glBindBuffer(GL_ARRAY_BUFFER, vboPos);
-    glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(float), positions.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray(0);
-    glGenBuffers(1, &vboCol);
-    glBindBuffer(GL_ARRAY_BUFFER, vboCol);
-    glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(float), colors.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray(1);
-    glBindVertexArray(0);
-    return vao;
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        count * sizeof(Vertex),
+        vertices,
+        GL_DYNAMIC_DRAW
+    );
+
+    glDrawArrays(primitive, 0, count);
 }
 
-void glfw_window_size_callback(GLFWwindow* window, int width, int height) {
-    WinWidth = width;
-    WinHeight = height;
-    glViewport(0, 0, WinWidth, WinHeight);
-}
+int main()
+{
+    srand(static_cast<unsigned int>(time(nullptr)));
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (action == GLFW_PRESS) {
-        if (key == GLFW_KEY_ESCAPE) {
-            glfwSetWindowShouldClose(window, 1);
-        }
-        if (key >= GLFW_KEY_1 && key <= GLFW_KEY_9) {
-            currentTask = key - GLFW_KEY_0;
-            std::cout << "Переключено на режим Задания № " << currentTask << std::endl;
-        }
-        if (key == GLFW_KEY_0) {
-            currentTask = 10;
-            std::cout << "Переключено на Задание № 7б (Flat Shading)" << std::endl;
-        }
-        if (key == GLFW_KEY_MINUS) {
-            currentTask = 11;
-            std::cout << "Переключено на Задание № 8 (Прозрачная каркасная сетка glPolygonMode)" << std::endl;
-        }
+    // Инициализация GLFW
+    if (!glfwInit())
+    {
+        std::cerr << "Не удалось запустить GLFW\n";
+        return 1;
     }
-}
 
-// -----------------------------------------------------------------------------
-// MAIN
-// -----------------------------------------------------------------------------
-int main() {
-    if (!glfwInit()) return -1;
-    GLFWwindow* window = glfwCreateWindow(WinWidth, WinHeight, "Prakticheskaya rabota 2 - Variant 2", NULL, NULL);
-    if (!window) {
+    // Создание окна
+    GLFWwindow* window = glfwCreateWindow(
+        640, 480, "Graphic Lab 2 - Variant 2",
+        nullptr, nullptr
+    );
+
+    if (window == nullptr)
+    {
         glfwTerminate();
-        return -1;
+        return 1;
     }
+
     glfwMakeContextCurrent(window);
-    glewInit();
-    glfwSetWindowSizeCallback(window, glfw_window_size_callback);
     glfwSetKeyCallback(window, key_callback);
 
-    programGouraud = createShaderProgram(vsSourceSmooth, fsSourceSmooth);
-    programFlat = createShaderProgram(vsSourceFlat, fsSourceFlat);
+    // Инициализация GLEW
+    if (glewInit() != GLEW_OK)
+    {
+        std::cerr << "Не удалось запустить GLEW\n";
+        glfwTerminate();
+        return 1;
+    }
 
-    std::vector<float> ngonPos, ngonCol; generateNGon(7, 0.6f, ngonPos, ngonCol); GLuint vaoNGon = createVAO(ngonPos, ngonCol);
-    std::vector<float> ngonFanPos, ngonFanCol; generateNGonFan(7, 0.6f, ngonFanPos, ngonFanCol); GLuint vaoNGonFan = createVAO(ngonFanPos, ngonFanCol);
-    std::vector<float> fig1Pos, fig1Col; generateFigure1(fig1Pos, fig1Col);       GLuint vaoFig1 = createVAO(fig1Pos, fig1Col);
-    std::vector<float> fig2Pos, fig2Col; generateFigure2(fig2Pos, fig2Col);       GLuint vaoFig2 = createVAO(fig2Pos, fig2Col);
-    std::vector<float> f5aPos, f5aCol; generateFig2Triangles(f5aPos, f5aCol); GLuint vaoF5a = createVAO(f5aPos, f5aCol);
-    std::vector<float> f5bPos, f5bCol; generateFig2Strip(f5bPos, f5bCol);       GLuint vaoF5b = createVAO(f5bPos, f5bCol);
-    std::vector<float> f5cPos, f5cCol; generateFig2Fan(f5cPos, f5cCol);         GLuint vaoF5c = createVAO(f5cPos, f5cCol);
-    std::vector<float> fig3Pos, fig3Col; generateFigure3Triangles(fig3Pos, fig3Col); GLuint vaoFig3 = createVAO(fig3Pos, fig3Col);
+    GLuint program = createShaderProgram();
 
-    glClearColor(0.12f, 0.12f, 0.12f, 1.0f);
+    // Создание VAO и VBO
+    GLuint vao, vbo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
 
-    std::cout << "===== ИНСТРУКЦИЯ ПО ПЕРЕКЛЮЧЕНИЮ ЗАДАНИЙ =====\n"
-        << " Нажмите [1]: Задание 1 (Точки 7-угольника)\n"
-        << " Нажмите [2]: Задание 2 (Контур 7-угольника)\n"
-        << " Нажмите [3]: Задание 3 (Фигура 1 - Ломаная линия)\n"
-        << " Нажмите [4]: Задание 4 (Фигура 2 - Контур Сигма)\n"
-        << " Нажмите [5]: Задание 5а (Фигура 2 - GL_TRIANGLES)\n"
-        << " Нажмите [6]: Задание 5б (Фигура 2 - GL_TRIANGLE_STRIP)\n"
-        << " Нажмите [7]: Задание 5в (Фигура 2 - GL_TRIANGLE_FAN)\n"
-        << " Нажмите [8]: Задание 6 (Закрашенный 7-угольник веером GL_TRIANGLE_FAN)\n"
-        << " Нажмите [9]: Задание 7а (Фигура 3 - Плавное тонирование / Smooth)\n"
-        << " Нажмите [0]: Задание 7б (Фигура 3 - Плоское тонирование / Flat)\n"
-        << " Нажмите [-]: Задание 8 (Фигура 3 - Прозрачная каркасная сетка glPolygonMode)\n"
-        << " ESC: Выход из программы\n"
-        << "===============================================" << std::endl;
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    while (!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Атрибут 0 — координаты вершины
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        0, 3, GL_FLOAT, GL_FALSE,
+        sizeof(Vertex), reinterpret_cast<void*>(0)
+    );
+
+    // Атрибут 1 — цвет вершины
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1, 3, GL_FLOAT, GL_FALSE,
+        sizeof(Vertex),
+        reinterpret_cast<void*>(3 * sizeof(float))
+    );
+
+    // Задания 1, 2 и 6: правильный семиугольник (сделаем его бирюзовым)
+    Vertex heptagon[N];
+
+    for (int i = 0; i < N; i++)
+    {
+        float angle = 2.0f * 3.14159265f * i / N;
+
+        heptagon[i] = makeVertex(
+            0.65f * cos(angle),
+            0.65f * sin(angle),
+            0.2f, 0.8f, 0.9f // Нежный бирюзовый цвет
+        );
+    }
+
+    // Задание 3: открытая ломаная (сделаем желтоватой)
+    Vertex figure1[] =
+    {
+        makeVertex(-0.80f,  0.30f, 1.0f, 0.8f, 0.2f),
+        makeVertex(-0.55f, -0.70f, 1.0f, 0.8f, 0.2f),
+        makeVertex(-0.30f, -0.20f, 1.0f, 0.8f, 0.2f),
+        makeVertex(0.15f, -0.20f, 1.0f, 0.8f, 0.2f),
+        makeVertex(0.05f,  0.45f, 1.0f, 0.8f, 0.2f),
+        makeVertex(0.80f,  0.45f, 1.0f, 0.8f, 0.2f),
+        makeVertex(0.15f, -0.85f, 1.0f, 0.8f, 0.2f)
+    };
+
+    // Задание 4: замкнутая ломаная (сделаем салатовой)
+    Vertex figure2[] =
+    {
+        makeVertex(-0.90f,  0.65f, 0.3f, 1.0f, 0.4f),
+        makeVertex(0.85f,  0.65f, 0.3f, 1.0f, 0.4f),
+        makeVertex(0.15f,  0.10f, 0.3f, 1.0f, 0.4f),
+        makeVertex(0.15f, -0.30f, 0.3f, 1.0f, 0.4f),
+        makeVertex(0.65f, -0.30f, 0.3f, 1.0f, 0.4f),
+        makeVertex(0.65f, -0.80f, 0.3f, 1.0f, 0.4f),
+        makeVertex(-0.65f, -0.80f, 0.3f, 1.0f, 0.4f),
+        makeVertex(-0.20f, -0.10f, 0.3f, 1.0f, 0.4f)
+    };
+
+    // Задание 5а: отдельные треугольники
+    Vertex triangles[] =
+    {
+        randomVertex(-0.90f,  0.65f),
+        randomVertex(0.85f,  0.65f),
+        randomVertex(0.15f,  0.10f),
+
+        randomVertex(-0.90f,  0.65f),
+        randomVertex(0.15f,  0.10f),
+        randomVertex(-0.20f, -0.10f),
+
+        randomVertex(-0.20f, -0.10f),
+        randomVertex(0.15f,  0.10f),
+        randomVertex(0.15f, -0.30f),
+
+        randomVertex(-0.20f, -0.10f),
+        randomVertex(0.15f, -0.30f),
+        randomVertex(-0.65f, -0.80f),
+
+        randomVertex(0.15f, -0.30f),
+        randomVertex(0.65f, -0.30f),
+        randomVertex(0.65f, -0.80f),
+
+        randomVertex(0.15f, -0.30f),
+        randomVertex(0.65f, -0.80f),
+        randomVertex(-0.65f, -0.80f)
+    };
+
+    // Задание 5б: лента треугольников
+    Vertex strip[] =
+    {
+        randomVertex(-0.90f,  0.65f),
+        randomVertex(0.85f,  0.65f),
+        randomVertex(-0.20f, -0.10f),
+        randomVertex(0.15f,  0.10f),
+        randomVertex(-0.65f, -0.80f),
+        randomVertex(0.15f, -0.30f),
+        randomVertex(0.65f, -0.80f),
+        randomVertex(0.65f, -0.30f)
+    };
+
+    // Задание 5в: веер треугольников
+    Vertex fan[] =
+    {
+        randomVertex(-0.20f, -0.10f),
+        randomVertex(-0.90f,  0.65f),
+        randomVertex(0.85f,  0.65f),
+        randomVertex(0.15f,  0.10f),
+        randomVertex(0.15f, -0.30f),
+        randomVertex(0.65f, -0.30f),
+        randomVertex(0.65f, -0.80f),
+        randomVertex(-0.65f, -0.80f)
+    };
+
+    // Задание 7: третья фигура
+    Vertex figure3[] =
+    {
+        randomVertex(-0.263f,  0.835f),
+        randomVertex(0.660f,  0.698f),
+        randomVertex(0.756f, -0.129f),
+
+        randomVertex(0.756f, -0.129f),
+        randomVertex(0.250f, -0.680f),
+        randomVertex(-0.058f,  0.422f),
+
+        randomVertex(-0.263f,  0.835f),
+        randomVertex(0.756f, -0.129f),
+        randomVertex(-0.058f,  0.422f),
+
+        randomVertex(-0.776f, -0.129f),
+        randomVertex(-0.263f,  0.835f),
+        randomVertex(-0.058f,  0.422f),
+
+        randomVertex(-0.776f, -0.129f),
+        randomVertex(-0.058f,  0.422f),
+        randomVertex(-0.468f, -0.257f),
+
+        randomVertex(-0.468f, -0.257f),
+        randomVertex(0.044f, -0.394f),
+        randomVertex(-0.263f, -0.670f),
+
+        randomVertex(-0.468f, -0.257f),
+        randomVertex(-0.263f, -0.670f),
+        randomVertex(-0.776f, -0.129f)
+    };
+
+    // Темный цвет фона (темно-серый / графитовый)
+    glClearColor(0.12f, 0.12f, 0.14f, 1.0f);
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    glPointSize(10.0f);
+    glLineWidth(3.0f);
+
+    // Главный цикл программы
+    while (!glfwWindowShouldClose(window))
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glUseProgram(program);
+
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        switch (currentTask) {
+        switch (task)
+        {
         case 1:
-            glUseProgram(programGouraud);
             glEnable(GL_POINT_SMOOTH);
-            glEnable(GL_PROGRAM_POINT_SIZE);
-            glPointSize(14.0f);
-            glBindVertexArray(vaoNGon);
-            glDrawArrays(GL_POINTS, 0, (GLsizei)(ngonPos.size() / 3));
+            glPointSize(10.0f);
+
+            drawVertices(
+                vao, vbo, heptagon, N, GL_POINTS
+            );
             break;
+
         case 2:
-            glUseProgram(programGouraud);
             glLineWidth(3.0f);
-            glEnable(GL_LINE_SMOOTH);
-            glBindVertexArray(vaoNGon);
-            glDrawArrays(GL_LINE_LOOP, 0, (GLsizei)(ngonPos.size() / 3));
+
+            drawVertices(
+                vao, vbo, heptagon, N, GL_LINE_LOOP
+            );
             break;
+
         case 3:
-            glUseProgram(programGouraud);
             glLineWidth(3.0f);
-            glBindVertexArray(vaoFig1);
-            glDrawArrays(GL_LINE_STRIP, 0, (GLsizei)(fig1Pos.size() / 3));
+
+            drawVertices(
+                vao, vbo, figure1,
+                sizeof(figure1) / sizeof(Vertex),
+                GL_LINE_STRIP
+            );
             break;
+
         case 4:
-            glUseProgram(programGouraud);
             glLineWidth(3.0f);
-            glBindVertexArray(vaoFig2);
-            glDrawArrays(GL_LINE_LOOP, 0, (GLsizei)(fig2Pos.size() / 3));
+
+            drawVertices(
+                vao, vbo, figure2,
+                sizeof(figure2) / sizeof(Vertex),
+                GL_LINE_LOOP
+            );
             break;
+
         case 5:
-            glUseProgram(programGouraud);
-            glBindVertexArray(vaoF5a);
-            glDrawArrays(GL_TRIANGLES, 0, (GLsizei)(f5aPos.size() / 3));
+            if (triangulationMode == 1)
+            {
+                drawVertices(
+                    vao, vbo, triangles,
+                    sizeof(triangles) / sizeof(Vertex),
+                    GL_TRIANGLES
+                );
+            }
+            else if (triangulationMode == 2)
+            {
+                drawVertices(
+                    vao, vbo, strip,
+                    sizeof(strip) / sizeof(Vertex),
+                    GL_TRIANGLE_STRIP
+                );
+            }
+            else
+            {
+                drawVertices(
+                    vao, vbo, fan,
+                    sizeof(fan) / sizeof(Vertex),
+                    GL_TRIANGLE_FAN
+                );
+            }
             break;
+
         case 6:
-            glUseProgram(programFlat);
-            glBindVertexArray(vaoF5b);
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)(f5bPos.size() / 3));
+            drawVertices(
+                vao, vbo, heptagon, N, GL_TRIANGLE_FAN
+            );
             break;
+
         case 7:
-            glUseProgram(programFlat);
-            glBindVertexArray(vaoF5c);
-            glDrawArrays(GL_TRIANGLE_FAN, 0, (GLsizei)(f5cPos.size() / 3));
+            drawVertices(
+                vao, vbo, figure3,
+                sizeof(figure3) / sizeof(Vertex),
+                GL_TRIANGLES
+            );
             break;
+
         case 8:
-            glUseProgram(programFlat);
-            glBindVertexArray(vaoNGonFan);
-            glDrawArrays(GL_TRIANGLE_FAN, 0, (GLsizei)(ngonFanPos.size() / 3));
-            break;
-        case 9:
-            glUseProgram(programGouraud);
-            glBindVertexArray(vaoFig3);
-            glDrawArrays(GL_TRIANGLES, 0, (GLsizei)(fig3Pos.size() / 3));
-            break;
-        case 10:
-            glUseProgram(programFlat);
-            glBindVertexArray(vaoFig3);
-            glDrawArrays(GL_TRIANGLES, 0, (GLsizei)(fig3Pos.size() / 3));
-            break;
-        case 11:
-            glUseProgram(programGouraud);
-            glBindVertexArray(vaoFig3);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glDrawArrays(GL_TRIANGLES, 0, (GLsizei)(fig3Pos.size() / 3));
+            if (faceMode == 1)
+            {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+                glPointSize(8.0f);
+
+                drawVertices(
+                    vao, vbo, figure3,
+                    sizeof(figure3) / sizeof(Vertex),
+                    GL_TRIANGLES
+                );
+            }
+            else if (faceMode == 2)
+            {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+                drawVertices(
+                    vao, vbo, figure3,
+                    sizeof(figure3) / sizeof(Vertex),
+                    GL_TRIANGLES
+                );
+
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                glLineWidth(2.0f);
+
+                drawVertices(
+                    vao, vbo, figure3,
+                    sizeof(figure3) / sizeof(Vertex),
+                    GL_TRIANGLES
+                );
+            }
+            else
+            {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                glLineWidth(2.0f);
+
+                drawVertices(
+                    vao, vbo, figure3,
+                    sizeof(figure3) / sizeof(Vertex),
+                    GL_TRIANGLES
+                );
+            }
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             break;
         }
-        glfwPollEvents();
+
         glfwSwapBuffers(window);
+        glfwPollEvents();
     }
+
+    glDeleteBuffers(1, &vbo);
+    glDeleteVertexArrays(1, &vao);
+    glDeleteProgram(program);
+
     glfwTerminate();
     return 0;
 }

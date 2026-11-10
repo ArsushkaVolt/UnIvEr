@@ -84,7 +84,7 @@ class CoffeeMachineWindow(QMainWindow):
   def __init__(self):
     super().__init__()
     self.setWindowTitle(
-        'Практическая работа №4 - Автомат по продаже кофе (Вариант 21)'
+        'Автомат по продаже кофе'
     )
     self.resize(1000, 650)
 
